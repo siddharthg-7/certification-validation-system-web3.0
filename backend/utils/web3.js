@@ -115,7 +115,8 @@ async function verifyCertificate(docHash) {
             exists: result.exists,
             ipfsCID: result.ipfsCID,
             issuer: result.issuer,
-            timestamp: result.timestamp.toString()
+            timestamp: result.timestamp.toString(),
+            isRevoked: result.isRevoked
         };
     } catch (error) {
         console.error('Certificate verification failed:', error);
@@ -141,11 +142,60 @@ async function getCertificate(docHash) {
             ipfsCID: cert.ipfsCID,
             issuer: cert.issuer,
             timestamp: cert.timestamp.toString(),
-            exists: cert.exists
+            exists: cert.exists,
+            isRevoked: cert.isRevoked
         };
     } catch (error) {
         console.error('Failed to get certificate:', error);
         throw new Error(`Failed to get certificate: ${error.message}`);
+    }
+}
+
+/**
+ * Revoke a certificate on the blockchain
+ * @param {string} docHash - Document hash (with 0x prefix)
+ * @returns {Promise<Object>} Transaction receipt
+ */
+async function revokeCertificate(docHash) {
+    if (!contract || !signer) {
+        throw new Error('Contract not initialized or no signer available');
+    }
+
+    try {
+        console.log('🚫 Revoking certificate:', docHash);
+        const tx = await contract.revokeCertificate(docHash);
+        const receipt = await tx.wait();
+        return {
+            transactionHash: receipt.hash,
+            blockNumber: receipt.blockNumber
+        };
+    } catch (error) {
+        console.error('Revocation failed:', error);
+        throw new Error(`Failed to revoke certificate: ${error.message}`);
+    }
+}
+
+/**
+ * Unrevoke a certificate on the blockchain
+ * @param {string} docHash - Document hash (with 0x prefix)
+ * @returns {Promise<Object>} Transaction receipt
+ */
+async function unrevokeCertificate(docHash) {
+    if (!contract || !signer) {
+        throw new Error('Contract not initialized or no signer available');
+    }
+
+    try {
+        console.log('✅ Unrevoking certificate:', docHash);
+        const tx = await contract.unrevokeCertificate(docHash);
+        const receipt = await tx.wait();
+        return {
+            transactionHash: receipt.hash,
+            blockNumber: receipt.blockNumber
+        };
+    } catch (error) {
+        console.error('Unrevocation failed:', error);
+        throw new Error(`Failed to unrevoke certificate: ${error.message}`);
     }
 }
 
@@ -196,6 +246,8 @@ module.exports = {
     issueCertificate,
     verifyCertificate,
     getCertificate,
+    revokeCertificate,
+    unrevokeCertificate,
     isAuthorizedIssuer,
     getSignerAddress,
     getProvider,

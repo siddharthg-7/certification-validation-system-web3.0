@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -17,6 +17,7 @@ contract CertificateRegistry is Ownable {
         address issuer;         // Address of the issuing institution
         uint256 timestamp;      // Timestamp when certificate was issued
         bool exists;            // Flag to check if certificate exists
+        bool isRevoked;         // Flag to check if certificate is revoked
     }
     
     // Mapping from document hash to certificate
@@ -33,6 +34,8 @@ contract CertificateRegistry is Ownable {
         uint256 timestamp
     );
     
+    event CertificateRevoked(bytes32 indexed docHash, address indexed revoker, uint256 timestamp);
+    event CertificateUnrevoked(bytes32 indexed docHash, address indexed revoker, uint256 timestamp);
     event IssuerAdded(address indexed issuer, uint256 timestamp);
     event IssuerRemoved(address indexed issuer, uint256 timestamp);
     
@@ -77,7 +80,7 @@ contract CertificateRegistry is Ownable {
      * @param _ipfsCID IPFS CID containing encrypted metadata
      */
     function issueCertificate(bytes32 _docHash, string memory _ipfsCID) 
-        external 
+        public 
         onlyAuthorizedIssuer 
     {
         require(_docHash != bytes32(0), "Invalid document hash");
@@ -89,10 +92,64 @@ contract CertificateRegistry is Ownable {
             ipfsCID: _ipfsCID,
             issuer: msg.sender,
             timestamp: block.timestamp,
-            exists: true
+            exists: true,
+            isRevoked: false
         });
         
         emit CertificateIssued(_docHash, _ipfsCID, msg.sender, block.timestamp);
+    }
+
+    /**
+     * @dev Batch issue multiple certificates
+     * @param _docHashes Array of document hashes
+     * @param _ipfsCIDs Array of IPFS CIDs
+     */
+    function batchIssueCertificates(bytes32[] calldata _docHashes, string[] calldata _ipfsCIDs) 
+        external 
+        onlyAuthorizedIssuer 
+    {
+        require(_docHashes.length == _ipfsCIDs.length, "Arrays length mismatch");
+        require(_docHashes.length > 0, "Empty arrays");
+
+        for (uint256 i = 0; i < _docHashes.length; i++) {
+            issueCertificate(_docHashes[i], _ipfsCIDs[i]);
+        }
+    }
+
+    /**
+     * @dev Revoke a certificate
+     * @param _docHash SHA-256 hash of the certificate document
+     */
+    function revokeCertificate(bytes32 _docHash) external onlyAuthorizedIssuer {
+        require(certificates[_docHash].exists, "Certificate does not exist");
+        require(!certificates[_docHash].isRevoked, "Certificate already revoked");
+        
+        // Only original issuer or owner can revoke
+        require(
+            certificates[_docHash].issuer == msg.sender || msg.sender == owner(),
+            "Not authorized to revoke this certificate"
+        );
+        
+        certificates[_docHash].isRevoked = true;
+        emit CertificateRevoked(_docHash, msg.sender, block.timestamp);
+    }
+
+    /**
+     * @dev Unrevoke a certificate
+     * @param _docHash SHA-256 hash of the certificate document
+     */
+    function unrevokeCertificate(bytes32 _docHash) external onlyAuthorizedIssuer {
+        require(certificates[_docHash].exists, "Certificate does not exist");
+        require(certificates[_docHash].isRevoked, "Certificate not revoked");
+        
+        // Only original issuer or owner can unrevoke
+        require(
+            certificates[_docHash].issuer == msg.sender || msg.sender == owner(),
+            "Not authorized to unrevoke this certificate"
+        );
+        
+        certificates[_docHash].isRevoked = false;
+        emit CertificateUnrevoked(_docHash, msg.sender, block.timestamp);
     }
     
     /**
@@ -102,6 +159,7 @@ contract CertificateRegistry is Ownable {
      * @return ipfsCID IPFS CID of the certificate metadata
      * @return issuer Address of the issuing institution
      * @return timestamp When the certificate was issued
+     * @return isRevoked Whether the certificate is revoked
      */
     function verifyCertificate(bytes32 _docHash) 
         external 
@@ -110,7 +168,8 @@ contract CertificateRegistry is Ownable {
             bool exists,
             string memory ipfsCID,
             address issuer,
-            uint256 timestamp
+            uint256 timestamp,
+            bool isRevoked
         ) 
     {
         Certificate memory cert = certificates[_docHash];
@@ -118,7 +177,8 @@ contract CertificateRegistry is Ownable {
             cert.exists,
             cert.ipfsCID,
             cert.issuer,
-            cert.timestamp
+            cert.timestamp,
+            cert.isRevoked
         );
     }
     

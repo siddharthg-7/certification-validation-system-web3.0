@@ -165,6 +165,7 @@ router.post('/verify', upload.single('certificate'), async (req, res) => {
                 timestamp: certData.timestamp,
                 ipfsCID: certData.ipfsCID,
                 metadata: metadata,
+                isRevoked: certData.isRevoked,
                 issuedDate: new Date(parseInt(certData.timestamp) * 1000).toISOString()
             }
         });
@@ -173,6 +174,70 @@ router.post('/verify', upload.single('certificate'), async (req, res) => {
         console.error('Certificate verification error:', error);
         res.status(500).json({
             error: 'Failed to verify certificate',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/revoke
+ * Revoke a certificate
+ */
+router.post('/revoke', async (req, res) => {
+    try {
+        if (!web3Ready) {
+            return res.status(503).json({ error: 'Web3 not initialized' });
+        }
+
+        const { docHash } = req.body;
+        if (!docHash) {
+            return res.status(400).json({ error: 'Document hash is required' });
+        }
+
+        const txReceipt = await revokeCertificate(docHash);
+
+        res.json({
+            success: true,
+            message: 'Certificate revoked successfully',
+            transactionHash: txReceipt.transactionHash
+        });
+
+    } catch (error) {
+        console.error('Revocation error:', error);
+        res.status(500).json({
+            error: 'Failed to revoke certificate',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/unrevoke
+ * Unrevoke a certificate
+ */
+router.post('/unrevoke', async (req, res) => {
+    try {
+        if (!web3Ready) {
+            return res.status(503).json({ error: 'Web3 not initialized' });
+        }
+
+        const { docHash } = req.body;
+        if (!docHash) {
+            return res.status(400).json({ error: 'Document hash is required' });
+        }
+
+        const txReceipt = await unrevokeCertificate(docHash);
+
+        res.json({
+            success: true,
+            message: 'Certificate unrevoked successfully',
+            transactionHash: txReceipt.transactionHash
+        });
+
+    } catch (error) {
+        console.error('Unrevocation error:', error);
+        res.status(500).json({
+            error: 'Failed to unrevoke certificate',
             details: error.message
         });
     }
@@ -221,6 +286,7 @@ router.get('/cert/:hash', async (req, res) => {
                 timestamp: certData.timestamp,
                 ipfsCID: certData.ipfsCID,
                 metadata: metadata,
+                isRevoked: certData.isRevoked,
                 issuedDate: new Date(parseInt(certData.timestamp) * 1000).toISOString()
             }
         });
@@ -277,7 +343,8 @@ router.get('/stats', async (req, res) => {
                 signerAddress: signerAddress,
                 isAuthorizedIssuer: isAuthorized,
                 web3Ready: web3Ready,
-                ipfsReady: ipfsReady
+                ipfsReady: ipfsReady,
+                network: process.env.HARDHAT_NETWORK || 'localhost'
             }
         });
 

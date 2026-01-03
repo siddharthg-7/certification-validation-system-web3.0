@@ -49,10 +49,12 @@ CertiChain is a decentralized application (dApp) that enables institutions to is
 ## ✨ Features
 
 - ✅ **Tamper-Proof**: Certificates stored as immutable blockchain records
-- 🔐 **Encrypted Metadata**: AES-256 encryption for sensitive information
+- � **Certificate Revocation**: Revoke and unrevoke certificates when needed
+- �🔐 **Encrypted Metadata**: AES-256 encryption for sensitive information
 - 📦 **Decentralized Storage**: IPFS integration with local fallback
 - 🎨 **Modern UI**: Dark-themed React interface with Tailwind CSS
 - 🔌 **MetaMask Integration**: Seamless Web3 wallet connection
+- 📊 **Management Dashboard**: Overview of all issued certificates and statistics
 - ⚡ **Instant Verification**: Real-time certificate validation
 - 🔍 **Audit Trail**: Complete transaction history on blockchain
 - 🐳 **Docker Support**: Containerized deployment
@@ -445,6 +447,28 @@ Get all transactions with pagination.
 **Request:**
 ```http
 GET /api/transactions?limit=50&offset=0
+```
+
+### POST /api/revoke
+
+Revoke a certificate by its document hash. Requires authorization.
+
+**Request:**
+```json
+{
+  "docHash": "0xabc123..."
+}
+```
+
+### POST /api/unrevoke
+
+Unrevoke a previously revoked certificate. Requires authorization.
+
+**Request:**
+```json
+{
+  "docHash": "0xabc123..."
+}
 ```
 
 ### GET /api/stats
