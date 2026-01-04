@@ -9,7 +9,7 @@
     "hardhat:deploy": "cd contracts && npx hardhat run scripts/deploy.js --network localhost",
     "hardhat:test": "cd contracts && npx hardhat test",
     "backend:dev": "cd backend && npm run dev",
-    "frontend:dev": "cd frontend && npm start",
+    "frontend:dev": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run hardhat:node\" \"npm run backend:dev\" \"npm run frontend:dev\"",
     "docker:up": "docker-compose up --build",
     "docker:down": "docker-compose down",
