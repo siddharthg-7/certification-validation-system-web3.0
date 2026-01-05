@@ -152,7 +152,7 @@ jobs:
           REACT_APP_NETWORK_NAME: Hardhat Local
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/build/
