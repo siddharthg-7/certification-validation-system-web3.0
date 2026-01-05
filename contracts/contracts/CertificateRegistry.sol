@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title CertificateRegistry
  * @dev Smart contract for decentralized certificate validation
  * @notice This contract allows authorized issuers to register certificates and anyone to verify them
  */
-contract CertificateRegistry is Ownable {
+contract CertificateRegistry is AccessControl, Pausable {
     
+    bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
+
     // Certificate structure
     struct Certificate {
         bytes32 docHash;        // SHA-256 hash of the certificate document
@@ -22,9 +25,6 @@ contract CertificateRegistry is Ownable {
     
     // Mapping from document hash to certificate
     mapping(bytes32 => Certificate) public certificates;
-    
-    // Mapping to track authorized issuers
-    mapping(address => bool) public authorizedIssuers;
     
     // Events
     event CertificateIssued(
@@ -39,15 +39,9 @@ contract CertificateRegistry is Ownable {
     event IssuerAdded(address indexed issuer, uint256 timestamp);
     event IssuerRemoved(address indexed issuer, uint256 timestamp);
     
-    // Modifiers
-    modifier onlyAuthorizedIssuer() {
-        require(authorizedIssuers[msg.sender], "Not an authorized issuer");
-        _;
-    }
-    
-    constructor() Ownable(msg.sender) {
-        // Add contract deployer as first authorized issuer
-        authorizedIssuers[msg.sender] = true;
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ISSUER_ROLE, msg.sender);
         emit IssuerAdded(msg.sender, block.timestamp);
     }
     
@@ -55,11 +49,9 @@ contract CertificateRegistry is Ownable {
      * @dev Add a new authorized issuer
      * @param _issuer Address of the institution to authorize
      */
-    function addAuthorizedIssuer(address _issuer) external onlyOwner {
+    function addAuthorizedIssuer(address _issuer) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_issuer != address(0), "Invalid issuer address");
-        require(!authorizedIssuers[_issuer], "Issuer already authorized");
-        
-        authorizedIssuers[_issuer] = true;
+        grantRole(ISSUER_ROLE, _issuer);
         emit IssuerAdded(_issuer, block.timestamp);
     }
     
@@ -67,11 +59,23 @@ contract CertificateRegistry is Ownable {
      * @dev Remove an authorized issuer
      * @param _issuer Address of the institution to deauthorize
      */
-    function removeAuthorizedIssuer(address _issuer) external onlyOwner {
-        require(authorizedIssuers[_issuer], "Issuer not authorized");
-        
-        authorizedIssuers[_issuer] = false;
+    function removeAuthorizedIssuer(address _issuer) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        revokeRole(ISSUER_ROLE, _issuer);
         emit IssuerRemoved(_issuer, block.timestamp);
+    }
+
+    /**
+     * @dev Pause the contract
+     */
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    /**
+     * @dev Unpause the contract
+     */
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
     }
     
     /**
@@ -81,7 +85,8 @@ contract CertificateRegistry is Ownable {
      */
     function issueCertificate(bytes32 _docHash, string memory _ipfsCID) 
         public 
-        onlyAuthorizedIssuer 
+        onlyRole(ISSUER_ROLE)
+        whenNotPaused
     {
         require(_docHash != bytes32(0), "Invalid document hash");
         require(bytes(_ipfsCID).length > 0, "Invalid IPFS CID");
@@ -106,7 +111,8 @@ contract CertificateRegistry is Ownable {
      */
     function batchIssueCertificates(bytes32[] calldata _docHashes, string[] calldata _ipfsCIDs) 
         external 
-        onlyAuthorizedIssuer 
+        onlyRole(ISSUER_ROLE)
+        whenNotPaused
     {
         require(_docHashes.length == _ipfsCIDs.length, "Arrays length mismatch");
         require(_docHashes.length > 0, "Empty arrays");
@@ -120,13 +126,13 @@ contract CertificateRegistry is Ownable {
      * @dev Revoke a certificate
      * @param _docHash SHA-256 hash of the certificate document
      */
-    function revokeCertificate(bytes32 _docHash) external onlyAuthorizedIssuer {
+    function revokeCertificate(bytes32 _docHash) external onlyRole(ISSUER_ROLE) whenNotPaused {
         require(certificates[_docHash].exists, "Certificate does not exist");
         require(!certificates[_docHash].isRevoked, "Certificate already revoked");
         
-        // Only original issuer or owner can revoke
+        // Only original issuer or admin can revoke
         require(
-            certificates[_docHash].issuer == msg.sender || msg.sender == owner(),
+            certificates[_docHash].issuer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "Not authorized to revoke this certificate"
         );
         
@@ -138,13 +144,13 @@ contract CertificateRegistry is Ownable {
      * @dev Unrevoke a certificate
      * @param _docHash SHA-256 hash of the certificate document
      */
-    function unrevokeCertificate(bytes32 _docHash) external onlyAuthorizedIssuer {
+    function unrevokeCertificate(bytes32 _docHash) external onlyRole(ISSUER_ROLE) whenNotPaused {
         require(certificates[_docHash].exists, "Certificate does not exist");
         require(certificates[_docHash].isRevoked, "Certificate not revoked");
         
-        // Only original issuer or owner can unrevoke
+        // Only original issuer or admin can unrevoke
         require(
-            certificates[_docHash].issuer == msg.sender || msg.sender == owner(),
+            certificates[_docHash].issuer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "Not authorized to unrevoke this certificate"
         );
         
@@ -188,7 +194,7 @@ contract CertificateRegistry is Ownable {
      * @return bool True if authorized, false otherwise
      */
     function isAuthorizedIssuer(address _issuer) external view returns (bool) {
-        return authorizedIssuers[_issuer];
+        return hasRole(ISSUER_ROLE, _issuer);
     }
     
     /**

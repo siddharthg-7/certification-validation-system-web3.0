@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { Web3Provider } from './hooks/useWeb3';
 import Home from './pages/Home';
 import IssueCertificate from './pages/IssueCertificate';
@@ -18,6 +19,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </Router>
+      <Toaster position="top-right" />
     </Web3Provider>
   );
 }

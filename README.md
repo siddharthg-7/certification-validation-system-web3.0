@@ -196,55 +196,60 @@
 
 <hr />
 
-<h2>🚦 Getting Started</h2>
+<h2>� Quick Start (Local)</h2>
 
-<h3>Prerequisites</h3>
-<ul>
-  <li>Node.js <code>v18.x</code> or higher</li>
-  <li><code>npm</code> or <code>yarn</code></li>
-  <li><a href="https://metamask.io/">MetaMask</a> browser wallet</li>
-  <li>Docker (optional, for containerized setup)</li>
-</ul>
+<p>Run the entire system locally with a single command.</p>
 
-<h3>Installation</h3>
-
+<h3>1. Setup</h3>
 <pre>
-# 1. Clone the repository
 git clone https://github.com/yourusername/certichain.git
 cd certichain
-
-# 2. Install monorepo dependencies
 npm run install:all
 
-# 3. Configure environment
+# Configure Environment
 cp .env.example .env
-# Set:
-# AES_ENCRYPTION_KEY=your-32-byte-secret
-# IPFS / DB / RPC details as needed
 </pre>
 
-<h3>Local Development</h3>
-
-<pre>
-# 1. Start local Hardhat node
-cd contracts
-npx hardhat node
-
-# 2. Deploy contracts to localhost
-npx hardhat run scripts/deploy.js --network localhost
-
-# 3. Run backend
-cd ../backend
-npm run dev
-
-# 4. Run frontend
-cd ../frontend
-npm start
-</pre>
-
+<h3>2. Run (Simplest Mode)</h3>
 <p>
-  Connect MetaMask to the local Hardhat network and import one of the generated accounts to act as an <b>Issuer/Admin</b>.
+  <b>Windows:</b> Double-click <code>start.bat</code> in the project folder.<br/>
+  <b>Terminal:</b> Run <code>.\start.bat</code>
 </p>
+
+<p>This script will automatically:</p>
+<ol>
+  <li>Start the local blockchain node.</li>
+  <li>Deploy the smart contracts.</li>
+  <li>Launch the Backend API.</li>
+  <li>Launch the Frontend Dashboard (opens in browser).</li>
+</ol>
+
+<hr />
+
+<h2>🌍 Going Live (Public Deployment)</h2>
+<p>To make the application act like a live site that anyone can use:</p>
+
+<h3>Step 1: Blockchain (Sepolia Testnet)</h3>
+<ol>
+  <li>Get a <b>Sepolia RPC URL</b> (from Alchemy/Infura) and a <b>Private Key</b> with Sepolia ETH.</li>
+  <li>Update <code>.env</code> with these details.</li>
+  <li>Deploy: <code>cd contracts && npx hardhat run scripts/deploy.js --network sepolia</code></li>
+  <li>Copy the new <b>Contract Address</b>.</li>
+</ol>
+
+<h3>Step 2: Backend (Hosting)</h3>
+<ol>
+  <li>The backend handles IPFS and encryption. It must be online 24/7.</li>
+  <li>Deploy the <code>/backend</code> folder to a service like <b>Render</b>, <b>Railway</b>, or <b>Heroku</b>.</li>
+  <li>Set the environment variables (AES Key, Contract Address, RPC URL) in the hosting dashboard.</li>
+</ol>
+
+<h3>Step 3: Frontend (Hosting)</h3>
+<ol>
+  <li>Update <code>frontend/.env</code> with the <b>Deployed Backend URL</b> and <b>Contract Address</b>.</li>
+  <li>Deploy the <code>/frontend</code> folder to <b>Vercel</b> or <b>Netlify</b>.</li>
+  <li>The site is now live! Users just need MetaMask to interact.</li>
+</ol>
 
 <hr />
 
