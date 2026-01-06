@@ -22,18 +22,50 @@ async function initWeb3() {
         console.log('🌐 Connected to network:', network.name, '(Chain ID:', network.chainId.toString() + ')');
 
         // Load contract deployment info
-        const deploymentPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry.json');
-        const abiPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry-ABI.json');
+        // Load contract ABI and Address
+        // In production (Render), we look for the file in the backend root
+        const localAbiPath = path.join(__dirname, '../CertificateRegistry.json');
 
-        if (!fs.existsSync(deploymentPath) || !fs.existsSync(abiPath)) {
-            throw new Error('Contract deployment files not found. Please deploy the contract first.');
+        let contractAddress;
+        let abi;
+
+        if (fs.existsSync(localAbiPath)) {
+            // Production / Simplified Setup
+            const contractData = JSON.parse(fs.readFileSync(localAbiPath, 'utf8'));
+            abi = contractData.abi;
+            contractAddress = process.env.CONTRACT_ADDRESS; // Always use env var in production
+
+            if (!contractAddress) {
+                // Determine address from file if not in env
+                // (Note: The hardhat artifact usually doesn't have the address directly, 
+                // so we rely on ENV or a separate deployment file. For this fix, we rely on ENV).
+                console.warn("⚠️ CONTRACT_ADDRESS not set in .env, checking artifact...");
+            }
+        } else {
+            // Development fallback (local contracts folder)
+            const deploymentPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry.json');
+            const abiPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry-ABI.json');
+
+            if (fs.existsSync(deploymentPath) && fs.existsSync(abiPath)) {
+                const deployment = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+                abi = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
+                contractAddress = deployment.contractAddress;
+            } else {
+                throw new Error('Contract ABI not found. Please ensure CertificateRegistry.json is in the backend root.');
+            }
         }
 
-        const deployment = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
-        const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
+        if (!contractAddress) {
+            // Final fallback to env if we loaded ABI but somehow missed address
+            contractAddress = process.env.CONTRACT_ADDRESS;
+        }
 
-        const contractAddress = deployment.contractAddress;
+        if (!contractAddress) {
+            throw new Error("Contract Address not found! Set CONTRACT_ADDRESS in .env");
+        }
+
         console.log('📜 Contract address:', contractAddress);
+
 
         // Create signer from private key
         if (process.env.PRIVATE_KEY) {
