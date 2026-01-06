@@ -1,18 +1,26 @@
-const express = require('express');
-const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+
+// Load environment variables FIRST
+dotenv.config({ path: path.join(__dirname, '../.env') });
+
+const express = require('express');
+const cors = require('cors');
 const certificateRoutes = require('./routes/certificate');
 const { initDatabase } = require('./db/database');
-
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://certichain-frontend.vercel.app'
+    ],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

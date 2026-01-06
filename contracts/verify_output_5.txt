@@ -1,0 +1,17 @@
+An unexpected error occurred:
+
+Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './common/bigInt' is not defined by "exports" in C:\certification validation system-web3.0\contracts\node_modules\hardhat\package.json
+    at exportsNotFound (node:internal/modules/esm/resolve:313:10)
+    at packageExportsResolve (node:internal/modules/esm/resolve:660:9)
+    at resolveExports (node:internal/modules/cjs/loader:646:36)
+    at Function._findPath (node:internal/modules/cjs/loader:713:31)
+    at node:internal/modules/cjs/loader:1351:27
+    at m._resolveFilename (file:///C:/certification%20validation%20system-web3.0/contracts/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1021:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1026:22)
+    at Function._load (node:internal/modules/cjs/loader:1175:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+}
+
+If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug

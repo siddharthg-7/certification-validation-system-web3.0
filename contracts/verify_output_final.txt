@@ -1,0 +1,17 @@
+[dotenv@17.2.3] injecting env (17) from ..\.env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[36m[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
+
+sourcify: {
+  enabled: true
+}
+
+Or set 'enabled' to false to hide this message.
+
+For more information, visit https://v2.hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify[39m
+Successfully submitted source code for contract
+contracts/CertificateRegistry.sol:CertificateRegistry at 0xCb3f328EEFeC798360E48DB815465ad599514e5b
+for verification on the block explorer. Waiting for verification result...
+
+Successfully verified contract CertificateRegistry on the block explorer.
+https://sepolia.etherscan.io/address/0xCb3f328EEFeC798360E48DB815465ad599514e5b#code
+

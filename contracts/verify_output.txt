@@ -1,0 +1,4 @@
+[dotenv@17.2.3] injecting env (17) from ..\.env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[31m[1mError in plugin @nomicfoundation/hardhat-verify:[22m[39m You are using a deprecated V1 endpoint, switch to Etherscan API V2 using https://docs.etherscan.io/v2-migration
+
+For more info run Hardhat with --show-stack-traces

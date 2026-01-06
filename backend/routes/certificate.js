@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { hashDocumentForBlockchain, encryptMetadata, decryptMetadata } = require('../utils/crypto');
-const { uploadToIPFS, retrieveFromIPFS, initIPFS } = require('../utils/ipfs');
+const { uploadToIPFS, uploadFileToIPFS, retrieveFromIPFS, initIPFS } = require('../utils/ipfs');
 const { initWeb3, issueCertificate, verifyCertificate, getCertificate, getSignerAddress, isAuthorizedIssuer } = require('../utils/web3');
 const { insertTransaction, getAllTransactions, getTransactionByDocHash, getStats } = require('../db/database');
 
@@ -71,11 +71,18 @@ router.post('/issue', upload.single('certificate'), async (req, res) => {
         const encryptionKey = process.env.AES_ENCRYPTION_KEY || 'default-key-change-this-in-production';
         const encryptedData = encryptMetadata(metadata, encryptionKey);
 
-        // Upload encrypted metadata to IPFS
+        // Upload certificate file to IPFS
+        const fileCID = await uploadFileToIPFS(req.file.buffer, req.file.originalname);
+        console.log('📤 Certificate file uploaded:', fileCID);
+
+        // Upload encrypted metadata to IPFS (including file CID)
         const ipfsCID = await uploadToIPFS({
             encrypted: encryptedData.encrypted,
             iv: encryptedData.iv,
-            algorithm: encryptedData.algorithm
+            algorithm: encryptedData.algorithm,
+            fileCID: fileCID,  // Reference to the actual certificate file
+            filename: req.file.originalname,
+            mimetype: req.file.mimetype
         });
 
         console.log('🔐 Encrypted metadata uploaded:', ipfsCID);

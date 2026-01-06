@@ -11,10 +11,9 @@ let signer = null;
  */
 async function initWeb3() {
     try {
-        // Connect to Hardhat local network or specified RPC
         const rpcUrl = process.env.HARDHAT_NETWORK === 'localhost'
             ? 'http://127.0.0.1:8545'
-            : process.env.RPC_URL;
+            : (process.env.RPC_URL || process.env.SEPOLIA_RPC_URL);
 
         provider = new ethers.JsonRpcProvider(rpcUrl);
 

@@ -1,0 +1,19 @@
+WARNING: You are currently using Node.js v22.18.0, which is not supported by Hardhat. This can lead to unexpected behavior. See https://hardhat.org/nodejs-versions
+
+
+An unexpected error occurred:
+
+Error: Cannot find module 'C:\certification validation system-web3.0\contracts\node_modules\hardhat\types\network' imported from C:\certification validation system-web3.0\contracts\node_modules\@nomicfoundation\hardhat-ethers\dist\src\type-extensions.js
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:742:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+    at ModuleLoader.#cachedResolveSync (node:internal/modules/esm/loader:726:25)
+    at ModuleLoader.getModuleJobForRequire (node:internal/modules/esm/loader:453:50)
+    at new ModuleJobSync (node:internal/modules/esm/module_job:393:34) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///C:/certification%20validation%20system-web3.0/contracts/node_modules/hardhat/types/network'
+}

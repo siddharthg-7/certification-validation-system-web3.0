@@ -1,0 +1,10 @@
+{
+    "ignore": [
+        "*.sqlite",
+        "*.sqlite-shm",
+        "*.sqlite-wal",
+        "ipfs-storage/*",
+        "deploy_output.txt",
+        "verify_output*.txt"
+    ]
+}

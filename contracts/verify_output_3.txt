@@ -1,0 +1,22 @@
+An unexpected error occurred:
+
+Error: Cannot find module '@nomicfoundation/hardhat-chai-matchers'
+Require stack:
+- C:\certification validation system-web3.0\contracts\node_modules\@nomicfoundation\hardhat-toolbox\index.js
+    at node:internal/modules/cjs/loader:1365:15
+    at m._resolveFilename (file:///C:/certification%20validation%20system-web3.0/contracts/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1021:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1026:22)
+    at Function._load (node:internal/modules/cjs/loader:1175:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1445:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (C:\certification validation system-web3.0\contracts\node_modules\@nomicfoundation\hardhat-toolbox\src\index.ts:1:1) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\certification validation system-web3.0\\contracts\\node_modules\\@nomicfoundation\\hardhat-toolbox\\index.js'
+  ]
+}
+
+If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug

@@ -19,6 +19,7 @@ async function main() {
     // Get deployer address
     const [deployer] = await hre.ethers.getSigners();
     console.log("📝 Deployed by:", deployer.address);
+    // Use BigInt for formatEther if needed, but standard ethers formatEther handles it.
     console.log("💰 Account balance:", hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), "ETH");
 
     // Save deployment information

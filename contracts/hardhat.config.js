@@ -2,7 +2,6 @@ require("@nomicfoundation/hardhat-toolbox");
 const path = require('path');
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
-
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
@@ -27,6 +26,9 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 11155111
     }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
   },
   paths: {
     sources: "./contracts",
