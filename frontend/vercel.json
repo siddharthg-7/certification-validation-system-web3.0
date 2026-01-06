@@ -1,7 +1,6 @@
 {
     "rewrites": [
         {
-            "CI": false,
             "source": "/(.*)",
             "destination": "/index.html"
         }
