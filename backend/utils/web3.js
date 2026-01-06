@@ -13,13 +13,23 @@ async function initWeb3() {
     try {
         const rpcUrl = process.env.HARDHAT_NETWORK === 'localhost'
             ? 'http://127.0.0.1:8545'
-            : (process.env.RPC_URL || process.env.SEPOLIA_RPC_URL);
+            : (process.env.SEPOLIA_RPC_URL || process.env.RPC_URL);
+
+        if (!rpcUrl) {
+            throw new Error('No RPC URL found. Please set SEPOLIA_RPC_URL or RPC_URL in environment variables.');
+        }
 
         provider = new ethers.JsonRpcProvider(rpcUrl);
 
         // Test connection
         const network = await provider.getNetwork();
-        console.log('🌐 Connected to network:', network.name, '(Chain ID:', network.chainId.toString() + ')');
+        const chainId = network.chainId;
+        console.log('🌐 Connected to network:', network.name, '(Chain ID:', chainId.toString() + ')');
+
+        // Verify we are on the correct network if not localhost
+        if (process.env.HARDHAT_NETWORK !== 'localhost' && chainId.toString() !== '11155111') {
+            console.warn(`⚠️  Warning: Expected Sepolia (11155111) but connected to Chain ID ${chainId}. Check your RPC URL.`);
+        }
 
         // Load contract deployment info
         // Load contract ABI and Address
