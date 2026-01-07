@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useWeb3 } from '../hooks/useWeb3';
@@ -12,6 +12,21 @@ const IssueCertificate = () => {
     const { isConnected, isCorrectNetwork } = useWeb3();
 
     const [file, setFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    // Create and revoke object URL for preview
+    useEffect(() => {
+        if (!file) {
+            setPreviewUrl(null);
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        setPreviewUrl(objectUrl);
+
+        // Cleanup to avoid memory leaks
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [file]);
     const [formData, setFormData] = useState({
         studentName: '',
         courseName: '',
@@ -169,6 +184,41 @@ const IssueCertificate = () => {
                                 label="Certificate Document"
                                 accept="*"
                             />
+
+                            {/* File Preview */}
+                            {file && previewUrl && (
+                                <div className="mt-6 border-t border-dark-700 pt-6">
+                                    <h4 className="text-sm font-medium text-gray-400 mb-4">Document Preview</h4>
+
+                                    <div className="bg-dark-900 rounded-lg p-2 border border-dark-700 overflow-hidden">
+                                        {file.type.startsWith('image/') ? (
+                                            <div className="flex justify-center bg-dark-800/50 rounded">
+                                                <img
+                                                    src={previewUrl}
+                                                    alt="Certificate Preview"
+                                                    className="max-h-[500px] w-auto object-contain"
+                                                />
+                                            </div>
+                                        ) : file.type === 'application/pdf' ? (
+                                            <div className="h-[500px] w-full bg-dark-800/50 rounded relative">
+                                                <iframe
+                                                    src={previewUrl}
+                                                    title="Certificate PDF Preview"
+                                                    className="w-full h-full rounded"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center text-gray-500 bg-dark-800/30 rounded border border-dashed border-dark-700">
+                                                <svg className="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                <p>Preview not available for this file type.</p>
+                                                <p className="text-sm opacity-75 mt-1">{file.name}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Metadata Form */}
