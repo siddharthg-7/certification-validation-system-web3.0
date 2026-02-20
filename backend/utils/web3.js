@@ -26,33 +26,22 @@ async function initWeb3() {
         const chainId = network.chainId;
         console.log('🌐 Connected to network:', network.name, '(Chain ID:', chainId.toString() + ')');
 
-        // Verify we are on the correct network if not localhost
         if (process.env.HARDHAT_NETWORK !== 'localhost' && chainId.toString() !== '11155111') {
             console.warn(`⚠️  Warning: Expected Sepolia (11155111) but connected to Chain ID ${chainId}. Check your RPC URL.`);
         }
 
-        // Load contract deployment info
-        // Load contract ABI and Address
-        // In production (Render), we look for the file in the backend root
         const localAbiPath = path.join(__dirname, '../CertificateRegistry.json');
-
         let contractAddress;
         let abi;
 
         if (fs.existsSync(localAbiPath)) {
-            // Production / Simplified Setup
             const contractData = JSON.parse(fs.readFileSync(localAbiPath, 'utf8'));
             abi = contractData.abi;
-            contractAddress = process.env.CONTRACT_ADDRESS; // Always use env var in production
-
+            contractAddress = process.env.CONTRACT_ADDRESS;
             if (!contractAddress) {
-                // Determine address from file if not in env
-                // (Note: The hardhat artifact usually doesn't have the address directly, 
-                // so we rely on ENV or a separate deployment file. For this fix, we rely on ENV).
                 console.warn("⚠️ CONTRACT_ADDRESS not set in .env, checking artifact...");
             }
         } else {
-            // Development fallback (local contracts folder)
             const deploymentPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry.json');
             const abiPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry-ABI.json');
 
@@ -66,7 +55,6 @@ async function initWeb3() {
         }
 
         if (!contractAddress) {
-            // Final fallback to env if we loaded ABI but somehow missed address
             contractAddress = process.env.CONTRACT_ADDRESS;
         }
 
@@ -76,21 +64,14 @@ async function initWeb3() {
 
         console.log('📜 Contract address:', contractAddress);
 
-
-        // Create signer from private key
         if (process.env.PRIVATE_KEY) {
             signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-            console.log('🔑 Signer address:', signer.address);
-
-            // Create contract instance with signer
             contract = new ethers.Contract(contractAddress, abi, signer);
         } else {
-            // Read-only contract instance
             contract = new ethers.Contract(contractAddress, abi, provider);
             console.warn('⚠️  No private key provided, contract is read-only');
         }
 
-        // Verify contract is deployed
         const code = await provider.getCode(contractAddress);
         if (code === '0x') {
             throw new Error('No contract deployed at specified address');
@@ -106,21 +87,25 @@ async function initWeb3() {
 
 /**
  * Issue a certificate on the blockchain
- * @param {string} docHash - Document hash (with 0x prefix)
- * @param {string} ipfsCID - IPFS CID or local storage identifier
+ * @param {string} binaryHash 
+ * @param {string} contentHash 
+ * @param {string} imageHash 
+ * @param {string} ipfsCID 
  * @returns {Promise<Object>} Transaction receipt
  */
-async function issueCertificate(docHash, ipfsCID) {
+async function issueCertificate(binaryHash, contentHash, imageHash, ipfsCID) {
     if (!contract || !signer) {
         throw new Error('Contract not initialized or no signer available');
     }
 
     try {
         console.log('📝 Issuing certificate...');
-        console.log('   Hash:', docHash);
+        console.log('   Binary Hash:', binaryHash);
+        console.log('   Content Hash:', contentHash);
+        console.log('   Image Hash:', imageHash);
         console.log('   CID:', ipfsCID);
 
-        const tx = await contract.issueCertificate(docHash, ipfsCID);
+        const tx = await contract.issueCertificate(binaryHash, contentHash, imageHash, ipfsCID);
         console.log('⏳ Transaction sent:', tx.hash);
 
         const receipt = await tx.wait();
@@ -138,159 +123,123 @@ async function issueCertificate(docHash, ipfsCID) {
 }
 
 /**
- * Verify a certificate on the blockchain
- * @param {string} docHash - Document hash (with 0x prefix)
+ * Verify a certificate by binary hash
+ * @param {string} binaryHash 
  * @returns {Promise<Object>} Certificate details
  */
-async function verifyCertificate(docHash) {
+async function verifyCertificate(binaryHash) {
     if (!contract) {
         throw new Error('Contract not initialized');
     }
 
     try {
-        console.log('🔍 Verifying certificate:', docHash);
-
-        const result = await contract.verifyCertificate(docHash);
-
+        const result = await contract.verifyCertificate(binaryHash);
         return {
             exists: result.exists,
+            binaryHash: binaryHash,
+            contentHash: result.contentHash,
+            imageHash: result.imageHash,
             ipfsCID: result.ipfsCID,
             issuer: result.issuer,
             timestamp: result.timestamp.toString(),
             isRevoked: result.isRevoked
         };
     } catch (error) {
-        console.error('Certificate verification failed:', error);
-        throw new Error(`Failed to verify certificate: ${error.message}`);
+        // console.error('Certificate verification failed:', error);
+        // Clean error handling for "not found"
+        return { exists: false };
     }
 }
 
 /**
- * Get full certificate details
- * @param {string} docHash - Document hash (with 0x prefix)
- * @returns {Promise<Object>} Full certificate object
+ * Verify a certificate by content hash
+ * @param {string} contentHash 
+ * @returns {Promise<Object>} Certificate details
  */
-async function getCertificate(docHash) {
-    if (!contract) {
-        throw new Error('Contract not initialized');
-    }
-
+async function verifyCertificateByContent(contentHash) {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-        const cert = await contract.getCertificate(docHash);
-
+        const result = await contract.verifyCertificateByContent(contentHash);
         return {
-            docHash: cert.docHash,
-            ipfsCID: cert.ipfsCID,
-            issuer: cert.issuer,
-            timestamp: cert.timestamp.toString(),
-            exists: cert.exists,
-            isRevoked: cert.isRevoked
+            exists: result.exists,
+            binaryHash: result.binaryHash,
+            contentHash: contentHash, // Returned value might be binaryHash from mapping, but verification confirms existence
+            imageHash: result.imageHash,
+            ipfsCID: result.ipfsCID,
+            issuer: result.issuer,
+            timestamp: result.timestamp.toString(),
+            isRevoked: result.isRevoked
         };
     } catch (error) {
-        console.error('Failed to get certificate:', error);
-        throw new Error(`Failed to get certificate: ${error.message}`);
+        return { exists: false };
     }
 }
 
 /**
- * Revoke a certificate on the blockchain
- * @param {string} docHash - Document hash (with 0x prefix)
- * @returns {Promise<Object>} Transaction receipt
+ * Verify a certificate by image hash
+ * @param {string} imageHash 
+ * @returns {Promise<Object>} Certificate details
  */
-async function revokeCertificate(docHash) {
-    if (!contract || !signer) {
-        throw new Error('Contract not initialized or no signer available');
-    }
-
+async function verifyCertificateByImage(imageHash) {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-        console.log('🚫 Revoking certificate:', docHash);
-        const tx = await contract.revokeCertificate(docHash);
-        const receipt = await tx.wait();
+        const result = await contract.verifyCertificateByImage(imageHash);
         return {
-            transactionHash: receipt.hash,
-            blockNumber: receipt.blockNumber
+            exists: result.exists,
+            binaryHash: result.binaryHash,
+            contentHash: result.contentHash,
+            imageHash: imageHash,
+            ipfsCID: result.ipfsCID,
+            issuer: result.issuer,
+            timestamp: result.timestamp.toString(),
+            isRevoked: result.isRevoked
         };
     } catch (error) {
-        console.error('Revocation failed:', error);
-        throw new Error(`Failed to revoke certificate: ${error.message}`);
+        return { exists: false };
     }
 }
 
-/**
- * Unrevoke a certificate on the blockchain
- * @param {string} docHash - Document hash (with 0x prefix)
- * @returns {Promise<Object>} Transaction receipt
- */
-async function unrevokeCertificate(docHash) {
-    if (!contract || !signer) {
-        throw new Error('Contract not initialized or no signer available');
-    }
-
-    try {
-        console.log('✅ Unrevoking certificate:', docHash);
-        const tx = await contract.unrevokeCertificate(docHash);
-        const receipt = await tx.wait();
-        return {
-            transactionHash: receipt.hash,
-            blockNumber: receipt.blockNumber
-        };
-    } catch (error) {
-        console.error('Unrevocation failed:', error);
-        throw new Error(`Failed to unrevoke certificate: ${error.message}`);
-    }
+async function getCertificate(binaryHash) {
+    // Same as verifyCertificate essentially
+    return await verifyCertificate(binaryHash);
 }
 
-/**
- * Check if an address is an authorized issuer
- * @param {string} address - Ethereum address
- * @returns {Promise<boolean>} Authorization status
- */
+async function revokeCertificate(binaryHash) {
+    if (!contract || !signer) throw new Error('Contract not initialized');
+    const tx = await contract.revokeCertificate(binaryHash);
+    const receipt = await tx.wait();
+    return { transactionHash: receipt.hash, blockNumber: receipt.blockNumber };
+}
+
+async function unrevokeCertificate(binaryHash) {
+    if (!contract || !signer) throw new Error('Contract not initialized');
+    const tx = await contract.unrevokeCertificate(binaryHash);
+    const receipt = await tx.wait();
+    return { transactionHash: receipt.hash, blockNumber: receipt.blockNumber };
+}
+
 async function isAuthorizedIssuer(address) {
-    if (!contract) {
-        throw new Error('Contract not initialized');
-    }
-
+    if (!contract) return false;
     try {
         return await contract.isAuthorizedIssuer(address);
     } catch (error) {
-        console.error('Failed to check issuer authorization:', error);
         return false;
     }
 }
 
-/**
- * Get current signer address
- * @returns {string|null} Signer address or null
- */
 function getSignerAddress() {
     return signer ? signer.address : null;
-}
-
-/**
- * Get provider instance
- * @returns {ethers.Provider|null} Provider instance
- */
-function getProvider() {
-    return provider;
-}
-
-/**
- * Get contract instance
- * @returns {ethers.Contract|null} Contract instance
- */
-function getContract() {
-    return contract;
 }
 
 module.exports = {
     initWeb3,
     issueCertificate,
     verifyCertificate,
+    verifyCertificateByContent,
+    verifyCertificateByImage,
     getCertificate,
     revokeCertificate,
     unrevokeCertificate,
     isAuthorizedIssuer,
-    getSignerAddress,
-    getProvider,
-    getContract
+    getSignerAddress
 };

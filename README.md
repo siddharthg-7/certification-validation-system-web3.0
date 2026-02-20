@@ -1,6 +1,6 @@
 <div align="center">
 
-  <h1>🔐 CertiChain</h1>
+  <h1> CertiChain</h1>
   <h3><b>Next-Gen Decentralized Certificate Validation System</b></h3>
 
   <p>
@@ -47,12 +47,12 @@
 
 <hr />
 
-<h2>🚀 Features</h2>
+<h2>Features</h2>
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <h4>🛡️ Tamper-Proof Security</h4>
+      <h4> Tamper-Proof Security</h4>
       <ul>
         <li>SHA-256 based document hashing for integrity.</li>
         <li>AES-256 encryption for sensitive certificate metadata.</li>
@@ -60,7 +60,7 @@
       </ul>
     </td>
     <td width="50%" valign="top">
-      <h4>⚡ Instant, Trustless Verification</h4>
+      <h4> Instant, Trustless Verification</h4>
       <ul>
         <li>Anyone with the original file can verify authenticity in seconds.</li>
         <li>No need to contact the issuing institution.</li>
@@ -70,7 +70,7 @@
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h4>🌐 Hybrid, Resilient Storage</h4>
+      <h4> Hybrid, Resilient Storage</h4>
       <ul>
         <li>Primary metadata storage on IPFS (CID pinned in contract).</li>
         <li>Local SQLite fallback/cache for high availability.</li>

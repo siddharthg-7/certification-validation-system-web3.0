@@ -35,7 +35,9 @@ const VerifyCertificate = () => {
             console.error('Verification error:', error);
             setResult({
                 valid: false,
-                error: error.response?.data?.details || error.message
+                message: error.response?.data?.message || 'Verification failed',
+                details: error.response?.data?.details || {},
+                error: error.message
             });
         } finally {
             setIsVerifying(false);
@@ -52,6 +54,72 @@ const VerifyCertificate = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const renderVerificationLayers = (details) => {
+        if (!details) return null;
+
+        return (
+            <div className="bg-dark-900 rounded-lg p-4 mb-4 border border-dark-800">
+                <h4 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Multi-Layer Analysis</h4>
+                <div className="space-y-3">
+                    {/* Layer 1: Binary */}
+                    <div className="flex justify-between items-center p-2 rounded bg-dark-950/50">
+                        <div className="flex items-center gap-3">
+                            <span className="text-gray-300 font-medium">1. Binary Integrity</span>
+                            <span className="text-xs text-gray-500">(Exact File Match)</span>
+                        </div>
+                        <div>
+                            {details.binaryMatch ? (
+                                <span className="text-green-500 font-bold flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    MATCH
+                                </span>
+                            ) : (
+                                <span className="text-red-500 font-bold flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                    MISMATCH
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Layer 2: Content */}
+                    <div className="flex justify-between items-center p-2 rounded bg-dark-950/50">
+                        <div className="flex items-center gap-3">
+                            <span className="text-gray-300 font-medium">2. Content Analysis</span>
+                            <span className="text-xs text-gray-500">(OCR / Text Extraction)</span>
+                        </div>
+                        <div>
+                            {details.contentMatch ? (
+                                <span className="text-green-500 font-bold flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    VERIFIED
+                                </span>
+                            ) : (
+                                <span className="text-red-500 font-bold flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                    FAILED
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Layer 3: Image Similarity */}
+                    <div className="flex justify-between items-center p-2 rounded bg-dark-950/50">
+                        <div className="flex items-center gap-3">
+                            <span className="text-gray-300 font-medium">3. Image Similarity</span>
+                            <span className="text-xs text-gray-500">(Perceptual Hash)</span>
+                        </div>
+                        <div>
+                            <span className={`font-bold ${details.imageSimilarity >= 90 ? 'text-green-500' : details.imageSimilarity > 70 ? 'text-yellow-500' : 'text-gray-500'}`}>
+                                {details.imageSimilarity ? `${details.imageSimilarity}% Match` : 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     const renderCertificateDetails = (cert) => (
@@ -110,7 +178,7 @@ const VerifyCertificate = () => {
                         </p>
                     </div>
                     <div>
-                        <span className="text-gray-500">Document Hash:</span>
+                        <span className="text-gray-500">Document Hash (Binary):</span>
                         <p className="font-mono text-primary-400 break-all">{cert.docHash}</p>
                     </div>
                     <div>
@@ -150,7 +218,7 @@ const VerifyCertificate = () => {
                     <div className="mb-8">
                         <h2 className="text-4xl font-bold mb-2">Verify Certificate</h2>
                         <p className="text-gray-400">
-                            Upload a certificate to verify its authenticity on the blockchain
+                            Perform a multi-layer verification check on your certificate document.
                         </p>
                     </div>
 
@@ -170,7 +238,7 @@ const VerifyCertificate = () => {
                             {isVerifying ? (
                                 <>
                                     <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block mr-2"></div>
-                                    Verifying...
+                                    Analysing Layers...
                                 </>
                             ) : (
                                 <>
@@ -186,72 +254,42 @@ const VerifyCertificate = () => {
                     {/* Result Section */}
                     {result && (
                         <div className={`card ${result.valid && !result.certificate?.isRevoked ? 'bg-green-500/10 border-green-500/30 glow-green' : result.certificate?.isRevoked ? 'bg-orange-500/10 border-orange-500/30 glow' : 'bg-red-500/10 border-red-500/30 glow-red'}`}>
-                            {/* Valid Certificate & Not Revoked */}
-                            {result.valid && !result.certificate?.isRevoked && (
-                                <div>
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
-                                            <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-green-500">Certificate is Valid!</h3>
-                                            <p className="text-gray-400">This certificate is authentic and verified on the blockchain</p>
-                                        </div>
-                                    </div>
-                                    {renderCertificateDetails(result.certificate)}
-                                </div>
-                            )}
 
-                            {/* Revoked Certificate */}
-                            {result.valid && result.certificate?.isRevoked && (
-                                <div>
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center">
-                                            <svg className="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-orange-500">Certificate is REVOKED</h3>
-                                            <p className="text-gray-400">This certificate exists but has been officially revoked by the issuer</p>
-                                        </div>
-                                    </div>
-                                    {renderCertificateDetails(result.certificate)}
+                            {/* Verdict Header */}
+                            <div className="flex items-center gap-3 mb-6 p-4 rounded-lg bg-dark-950/30">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${result.valid && !result.certificate?.isRevoked ? 'bg-green-500/20 text-green-500' : result.certificate?.isRevoked ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'}`}>
+                                    {result.valid && !result.certificate?.isRevoked ? (
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    ) : (
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                    )}
                                 </div>
-                            )}
+                                <div>
+                                    <h3 className={`text-xl font-bold ${result.valid && !result.certificate?.isRevoked ? 'text-green-500' : result.certificate?.isRevoked ? 'text-orange-500' : 'text-red-500'}`}>
+                                        {result.valid ? (result.certificate?.isRevoked ? 'REVOKED' : 'VALID CERTIFICATE') : 'INVALID CERTIFICATE'}
+                                    </h3>
+                                    <p className="text-sm text-gray-400">
+                                        {result.message}
+                                    </p>
+                                </div>
+                            </div>
 
-                            {/* Invalid Certificate */}
+                            {/* Multi-Layer Analysis Display */}
+                            {renderVerificationLayers(result.details)}
+
+                            {/* Certificate Details if Valid */}
+                            {result.valid && result.certificate && renderCertificateDetails(result.certificate)}
+
+                            {/* Error Details if Invalid */}
                             {!result.valid && (
-                                <div>
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                                            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-red-500">Certificate is Invalid!</h3>
-                                            <p className="text-gray-400">
-                                                {result.message || 'This certificate could not be verified on the blockchain'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-dark-900 rounded-lg p-4">
-                                        <h4 className="text-sm font-semibold text-red-400 mb-2">Possible Reasons:</h4>
-                                        <ul className="list-disc list-inside text-gray-400 space-y-1 text-sm">
-                                            <li>Certificate has been tampered with or modified</li>
-                                            <li>Certificate was never issued on this blockchain</li>
-                                            <li>Certificate file is corrupted</li>
-                                        </ul>
-                                        {result.error && (
-                                            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-sm">
-                                                Error: {result.error}
-                                            </div>
-                                        )}
-                                    </div>
+                                <div className="bg-dark-900 rounded-lg p-4 mt-4">
+                                    <h4 className="text-sm font-semibold text-red-400 mb-2">Failure Analysis:</h4>
+                                    <p className="text-sm text-gray-400 mb-2">The certificate could not be verified by any layer:</p>
+                                    <ul className="list-disc list-inside text-gray-400 space-y-1 text-sm">
+                                        <li>Binary hash did not match any record.</li>
+                                        <li>Extracted content did not match any record.</li>
+                                        <li>No similar images found above confidence threshold.</li>
+                                    </ul>
                                 </div>
                             )}
                         </div>
@@ -265,11 +303,12 @@ const VerifyCertificate = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <div className="text-sm text-gray-300">
-                                    <p className="font-semibold mb-1">How Verification Works</p>
+                                    <p className="font-semibold mb-1">Multi-Layer Intelligence</p>
                                     <p className="text-gray-400">
-                                        When you upload a certificate, we compute its SHA-256 hash and check it against the
-                                        Ethereum blockchain. If the hash matches a recorded certificate, it's valid. Any
-                                        modification to the file will result in a different hash, immediately detecting tampering.
+                                        Our new verification engine uses a hybrid approach:
+                                        <br />1. <strong>Binary:</strong> Checks strict file integrity.
+                                        <br />2. <strong>Content:</strong> Extracts and matches text content.
+                                        <br />3. <strong>Result:</strong> Intelligent match confirmation.
                                     </p>
                                 </div>
                             </div>

@@ -335,20 +335,36 @@ const IssueCertificate = () => {
                             </h3>
                             <div className="space-y-3 text-sm">
                                 <div>
-                                    <span className="text-gray-400">Document Hash:</span>
-                                    <p className="font-mono text-primary-400 break-all">{result.docHash}</p>
+                                    <span className="text-gray-400 font-semibold block mb-1">Blockchain IDs:</span>
+                                    <div className="pl-3 border-l-2 border-green-500/30 space-y-2">
+                                        <div>
+                                            <span className="text-gray-500 text-xs uppercase">Binary Hash</span>
+                                            <p className="font-mono text-primary-400 break-all text-xs">{result.docHash}</p>
+                                        </div>
+                                        {result.contentHash && (
+                                            <div>
+                                                <span className="text-gray-500 text-xs uppercase">Content Hash</span>
+                                                <p className="font-mono text-primary-400 break-all text-xs">{result.contentHash}</p>
+                                            </div>
+                                        )}
+                                        {result.imageHash && (
+                                            <div>
+                                                <span className="text-gray-500 text-xs uppercase">Image Hash</span>
+                                                <p className="font-mono text-primary-400 break-all text-xs">{result.imageHash}</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
-                                    <span className="text-gray-400">IPFS CID:</span>
-                                    <p className="font-mono text-primary-400 break-all">{result.ipfsCID}</p>
-                                </div>
-                                <div>
-                                    <span className="text-gray-400">Transaction Hash:</span>
-                                    <p className="font-mono text-primary-400 break-all">{result.transactionHash}</p>
-                                </div>
-                                <div>
-                                    <span className="text-gray-400">Block Number:</span>
-                                    <p className="text-gray-200">{result.blockNumber}</p>
+
+                                <div className="mt-4 pt-4 border-t border-green-500/20">
+                                    <div className="mb-2">
+                                        <span className="text-gray-400">IPFS CID:</span>
+                                        <p className="font-mono text-primary-400 break-all">{result.ipfsCID}</p>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-400">Transaction Hash:</span>
+                                        <p className="font-mono text-primary-400 break-all">{result.transactionHash}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

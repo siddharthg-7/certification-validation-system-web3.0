@@ -15,7 +15,9 @@ contract CertificateRegistry is AccessControl, Pausable {
 
     // Certificate structure
     struct Certificate {
-        bytes32 docHash;        // SHA-256 hash of the certificate document
+        bytes32 binaryHash;     // SHA-256 hash of the exact file (primary key)
+        bytes32 contentHash;    // SHA-256 hash of extracted content
+        bytes32 imageHash;      // Perceptual hash of image (optional)
         string ipfsCID;         // IPFS CID for encrypted metadata
         address issuer;         // Address of the issuing institution
         uint256 timestamp;      // Timestamp when certificate was issued
@@ -23,19 +25,28 @@ contract CertificateRegistry is AccessControl, Pausable {
         bool isRevoked;         // Flag to check if certificate is revoked
     }
     
-    // Mapping from document hash to certificate
+    // Mapping from binary hash (primary key) to certificate
     mapping(bytes32 => Certificate) public certificates;
+
+    // Mapping from content hash to binary hash (for content-based lookup)
+    mapping(bytes32 => bytes32) public contentHashToBinaryHash;
+
+    // Mapping from image hash to binary hash (for image-based lookup - simplified exact match on pHash)
+    mapping(bytes32 => bytes32) public imageHashToBinaryHash;
+
     
     // Events
     event CertificateIssued(
-        bytes32 indexed docHash,
+        bytes32 indexed binaryHash,
+        bytes32 indexed contentHash,
+        bytes32 imageHash,
         string ipfsCID,
         address indexed issuer,
         uint256 timestamp
     );
     
-    event CertificateRevoked(bytes32 indexed docHash, address indexed revoker, uint256 timestamp);
-    event CertificateUnrevoked(bytes32 indexed docHash, address indexed revoker, uint256 timestamp);
+    event CertificateRevoked(bytes32 indexed binaryHash, address indexed revoker, uint256 timestamp);
+    event CertificateUnrevoked(bytes32 indexed binaryHash, address indexed revoker, uint256 timestamp);
     event IssuerAdded(address indexed issuer, uint256 timestamp);
     event IssuerRemoved(address indexed issuer, uint256 timestamp);
     
@@ -80,107 +91,198 @@ contract CertificateRegistry is AccessControl, Pausable {
     
     /**
      * @dev Issue a new certificate
-     * @param _docHash SHA-256 hash of the certificate document
+     * @param _binaryHash SHA-256 hash of the exact file
+     * @param _contentHash SHA-256 hash of extracted content
+     * @param _imageHash Perceptual hash of the image (0x0 if not applicable)
      * @param _ipfsCID IPFS CID containing encrypted metadata
      */
-    function issueCertificate(bytes32 _docHash, string memory _ipfsCID) 
+    function issueCertificate(
+        bytes32 _binaryHash,
+        bytes32 _contentHash,
+        bytes32 _imageHash,
+        string memory _ipfsCID
+    ) 
         public 
         onlyRole(ISSUER_ROLE)
         whenNotPaused
     {
-        require(_docHash != bytes32(0), "Invalid document hash");
+        require(_binaryHash != bytes32(0), "Invalid binary hash");
         require(bytes(_ipfsCID).length > 0, "Invalid IPFS CID");
-        require(!certificates[_docHash].exists, "Certificate already exists");
+        require(!certificates[_binaryHash].exists, "Certificate already exists");
         
-        certificates[_docHash] = Certificate({
-            docHash: _docHash,
+        certificates[_binaryHash] = Certificate({
+            binaryHash: _binaryHash,
+            contentHash: _contentHash,
+            imageHash: _imageHash,
             ipfsCID: _ipfsCID,
             issuer: msg.sender,
             timestamp: block.timestamp,
             exists: true,
             isRevoked: false
         });
+
+        // Update lookup mappings
+        if (_contentHash != bytes32(0)) {
+            contentHashToBinaryHash[_contentHash] = _binaryHash;
+        }
+        if (_imageHash != bytes32(0)) {
+            imageHashToBinaryHash[_imageHash] = _binaryHash;
+        }
         
-        emit CertificateIssued(_docHash, _ipfsCID, msg.sender, block.timestamp);
+        emit CertificateIssued(_binaryHash, _contentHash, _imageHash, _ipfsCID, msg.sender, block.timestamp);
     }
 
     /**
      * @dev Batch issue multiple certificates
-     * @param _docHashes Array of document hashes
+     * @param _binaryHashes Array of binary hashes
+     * @param _contentHashes Array of content hashes
+     * @param _imageHashes Array of image hashes
      * @param _ipfsCIDs Array of IPFS CIDs
      */
-    function batchIssueCertificates(bytes32[] calldata _docHashes, string[] calldata _ipfsCIDs) 
+    function batchIssueCertificates(
+        bytes32[] calldata _binaryHashes, 
+        bytes32[] calldata _contentHashes,
+        bytes32[] calldata _imageHashes,
+        string[] calldata _ipfsCIDs
+    ) 
         external 
         onlyRole(ISSUER_ROLE)
         whenNotPaused
     {
-        require(_docHashes.length == _ipfsCIDs.length, "Arrays length mismatch");
-        require(_docHashes.length > 0, "Empty arrays");
+        require(_binaryHashes.length == _ipfsCIDs.length, "Arrays length mismatch");
+        require(_binaryHashes.length > 0, "Empty arrays");
 
-        for (uint256 i = 0; i < _docHashes.length; i++) {
-            issueCertificate(_docHashes[i], _ipfsCIDs[i]);
+        for (uint256 i = 0; i < _binaryHashes.length; i++) {
+            issueCertificate(_binaryHashes[i], _contentHashes[i], _imageHashes[i], _ipfsCIDs[i]);
         }
     }
 
     /**
      * @dev Revoke a certificate
-     * @param _docHash SHA-256 hash of the certificate document
+     * @param _binaryHash SHA-256 hash of the certificate document
      */
-    function revokeCertificate(bytes32 _docHash) external onlyRole(ISSUER_ROLE) whenNotPaused {
-        require(certificates[_docHash].exists, "Certificate does not exist");
-        require(!certificates[_docHash].isRevoked, "Certificate already revoked");
+    function revokeCertificate(bytes32 _binaryHash) external onlyRole(ISSUER_ROLE) whenNotPaused {
+        require(certificates[_binaryHash].exists, "Certificate does not exist");
+        require(!certificates[_binaryHash].isRevoked, "Certificate already revoked");
         
         // Only original issuer or admin can revoke
         require(
-            certificates[_docHash].issuer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            certificates[_binaryHash].issuer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "Not authorized to revoke this certificate"
         );
         
-        certificates[_docHash].isRevoked = true;
-        emit CertificateRevoked(_docHash, msg.sender, block.timestamp);
+        certificates[_binaryHash].isRevoked = true;
+        emit CertificateRevoked(_binaryHash, msg.sender, block.timestamp);
     }
 
     /**
      * @dev Unrevoke a certificate
-     * @param _docHash SHA-256 hash of the certificate document
+     * @param _binaryHash SHA-256 hash of the certificate document
      */
-    function unrevokeCertificate(bytes32 _docHash) external onlyRole(ISSUER_ROLE) whenNotPaused {
-        require(certificates[_docHash].exists, "Certificate does not exist");
-        require(certificates[_docHash].isRevoked, "Certificate not revoked");
+    function unrevokeCertificate(bytes32 _binaryHash) external onlyRole(ISSUER_ROLE) whenNotPaused {
+        require(certificates[_binaryHash].exists, "Certificate does not exist");
+        require(certificates[_binaryHash].isRevoked, "Certificate not revoked");
         
         // Only original issuer or admin can unrevoke
         require(
-            certificates[_docHash].issuer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            certificates[_binaryHash].issuer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "Not authorized to unrevoke this certificate"
         );
         
-        certificates[_docHash].isRevoked = false;
-        emit CertificateUnrevoked(_docHash, msg.sender, block.timestamp);
+        certificates[_binaryHash].isRevoked = false;
+        emit CertificateUnrevoked(_binaryHash, msg.sender, block.timestamp);
     }
     
     /**
      * @dev Verify if a certificate exists and retrieve its details
-     * @param _docHash SHA-256 hash of the certificate document
-     * @return exists Whether the certificate exists
-     * @return ipfsCID IPFS CID of the certificate metadata
-     * @return issuer Address of the issuing institution
-     * @return timestamp When the certificate was issued
-     * @return isRevoked Whether the certificate is revoked
+     * @param _binaryHash SHA-256 hash of the certificate document
      */
-    function verifyCertificate(bytes32 _docHash) 
+    function verifyCertificate(bytes32 _binaryHash) 
         external 
         view 
         returns (
             bool exists,
+            bytes32 contentHash,
+            bytes32 imageHash,
             string memory ipfsCID,
             address issuer,
             uint256 timestamp,
             bool isRevoked
         ) 
     {
-        Certificate memory cert = certificates[_docHash];
+        Certificate memory cert = certificates[_binaryHash];
         return (
             cert.exists,
+            cert.contentHash,
+            cert.imageHash,
+            cert.ipfsCID,
+            cert.issuer,
+            cert.timestamp,
+            cert.isRevoked
+        );
+    }
+
+    /**
+     * @dev Verify by content hash
+     * @param _contentHash Content hash to lookup
+     */
+    function verifyCertificateByContent(bytes32 _contentHash) 
+        external 
+        view 
+        returns (
+            bool exists,
+            bytes32 binaryHash,
+            bytes32 imageHash,
+            string memory ipfsCID,
+            address issuer,
+            uint256 timestamp,
+            bool isRevoked
+        ) 
+    {
+        bytes32 binHash = contentHashToBinaryHash[_contentHash];
+        if (binHash == bytes32(0)) {
+            return (false, bytes32(0), bytes32(0), "", address(0), 0, false);
+        }
+        
+        Certificate memory cert = certificates[binHash];
+        return (
+            cert.exists,
+            cert.binaryHash,
+            cert.imageHash,
+            cert.ipfsCID,
+            cert.issuer,
+            cert.timestamp,
+            cert.isRevoked
+        );
+    }
+
+    /**
+     * @dev Verify by image hash (exact pHash match)
+     * @param _imageHash Image hash to lookup
+     */
+    function verifyCertificateByImage(bytes32 _imageHash) 
+        external 
+        view 
+        returns (
+            bool exists,
+            bytes32 binaryHash,
+            bytes32 contentHash,
+            string memory ipfsCID,
+            address issuer,
+            uint256 timestamp,
+            bool isRevoked
+        ) 
+    {
+        bytes32 binHash = imageHashToBinaryHash[_imageHash];
+        if (binHash == bytes32(0)) {
+            return (false, bytes32(0), bytes32(0), "", address(0), 0, false);
+        }
+        
+        Certificate memory cert = certificates[binHash];
+        return (
+            cert.exists,
+            cert.binaryHash,
+            cert.contentHash,
             cert.ipfsCID,
             cert.issuer,
             cert.timestamp,
@@ -199,14 +301,14 @@ contract CertificateRegistry is AccessControl, Pausable {
     
     /**
      * @dev Get certificate details by document hash
-     * @param _docHash SHA-256 hash of the certificate document
+     * @param _binaryHash SHA-256 hash of the certificate document
      * @return Certificate struct
      */
-    function getCertificate(bytes32 _docHash) 
+    function getCertificate(bytes32 _binaryHash) 
         external 
         view 
         returns (Certificate memory) 
     {
-        return certificates[_docHash];
+        return certificates[_binaryHash];
     }
 }

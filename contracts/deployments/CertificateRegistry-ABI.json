@@ -41,7 +41,19 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "docHash",
+        "name": "binaryHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "contentHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "imageHash",
         "type": "bytes32"
       },
       {
@@ -72,7 +84,7 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "docHash",
+        "name": "binaryHash",
         "type": "bytes32"
       },
       {
@@ -97,7 +109,7 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "docHash",
+        "name": "binaryHash",
         "type": "bytes32"
       },
       {
@@ -298,7 +310,17 @@
     "inputs": [
       {
         "internalType": "bytes32[]",
-        "name": "_docHashes",
+        "name": "_binaryHashes",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "_contentHashes",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "_imageHashes",
         "type": "bytes32[]"
       },
       {
@@ -324,7 +346,17 @@
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "docHash",
+        "name": "binaryHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "contentHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
         "type": "bytes32"
       },
       {
@@ -360,7 +392,26 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_docHash",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "contentHashToBinaryHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_binaryHash",
         "type": "bytes32"
       }
     ],
@@ -370,7 +421,17 @@
         "components": [
           {
             "internalType": "bytes32",
-            "name": "docHash",
+            "name": "binaryHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "contentHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "imageHash",
             "type": "bytes32"
           },
           {
@@ -471,6 +532,25 @@
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "imageHashToBinaryHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_issuer",
         "type": "address"
@@ -491,7 +571,17 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_docHash",
+        "name": "_binaryHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_contentHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_imageHash",
         "type": "bytes32"
       },
       {
@@ -560,7 +650,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_docHash",
+        "name": "_binaryHash",
         "type": "bytes32"
       }
     ],
@@ -617,7 +707,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_docHash",
+        "name": "_binaryHash",
         "type": "bytes32"
       }
     ],
@@ -630,7 +720,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_docHash",
+        "name": "_binaryHash",
         "type": "bytes32"
       }
     ],
@@ -640,6 +730,114 @@
         "internalType": "bool",
         "name": "exists",
         "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "contentHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "ipfsCID",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "issuer",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRevoked",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_contentHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "verifyCertificateByContent",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "exists",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "binaryHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "ipfsCID",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "issuer",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRevoked",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_imageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "verifyCertificateByImage",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "exists",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "binaryHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "contentHash",
+        "type": "bytes32"
       },
       {
         "internalType": "string",
