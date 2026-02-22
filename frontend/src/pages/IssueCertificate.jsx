@@ -5,6 +5,7 @@ import { useWeb3 } from '../hooks/useWeb3';
 import WalletConnect from '../components/WalletConnect';
 import FileUpload from '../components/FileUpload';
 import TransactionModal from '../components/TransactionModal';
+import FloatingLabelInput from '../components/FloatingLabelInput';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -227,76 +228,68 @@ const IssueCertificate = () => {
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="label">Student Name *</label>
-                                    <input
-                                        type="text"
+                                    <FloatingLabelInput
+                                        label="Student Name"
                                         name="studentName"
                                         value={formData.studentName}
                                         onChange={handleInputChange}
-                                        className="input-field"
-                                        placeholder="John Doe"
+                                        id="studentName"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="label">Course Name *</label>
-                                    <input
-                                        type="text"
+                                    <FloatingLabelInput
+                                        label="Course Name"
                                         name="courseName"
                                         value={formData.courseName}
                                         onChange={handleInputChange}
-                                        className="input-field"
-                                        placeholder="Computer Science"
+                                        id="courseName"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="label">Institution *</label>
-                                    <input
-                                        type="text"
+                                    <FloatingLabelInput
+                                        label="Institution"
                                         name="institution"
                                         value={formData.institution}
                                         onChange={handleInputChange}
-                                        className="input-field"
-                                        placeholder="University Name"
+                                        id="institution"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="label">Issue Date</label>
-                                    <input
+                                    <FloatingLabelInput
+                                        label="Issue Date"
                                         type="date"
                                         name="issueDate"
                                         value={formData.issueDate}
                                         onChange={handleInputChange}
-                                        className="input-field"
+                                        id="issueDate"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="label">Grade</label>
-                                    <input
-                                        type="text"
+                                    <FloatingLabelInput
+                                        label="Grade"
                                         name="grade"
                                         value={formData.grade}
                                         onChange={handleInputChange}
-                                        className="input-field"
-                                        placeholder="A+"
+                                        id="grade"
                                     />
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="label">Additional Information</label>
-                                    <textarea
+                                    <FloatingLabelInput
+                                        label="Additional Information"
                                         name="additionalInfo"
                                         value={formData.additionalInfo}
                                         onChange={handleInputChange}
-                                        className="input-field"
+                                        id="additionalInfo"
+                                        textarea
                                         rows="3"
-                                        placeholder="Any additional details..."
                                     />
                                 </div>
                             </div>

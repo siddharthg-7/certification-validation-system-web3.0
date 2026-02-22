@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useWeb3 } from '../hooks/useWeb3';
 import WalletConnect from '../components/WalletConnect';
+import FloatingLabelInput from '../components/FloatingLabelInput';
+import { FaSearch, FaFilter } from 'react-icons/fa';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -12,6 +14,7 @@ const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -96,17 +99,29 @@ const Dashboard = () => {
             </header>
 
             <main className="container mx-auto px-4 py-12">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                     <div>
                         <h2 className="text-4xl font-bold mb-2">System Dashboard</h2>
                         <p className="text-gray-400 font-medium">Manage and monitor all issued certificates</p>
                     </div>
-                    <Link to="/issue" className="btn-primary flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Issue New Certificate
-                    </Link>
+
+                    <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                        <div className="relative flex-grow min-w-[300px]">
+                            <FloatingLabelInput
+                                label="Search by Hash or Issuer"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                id="searchDash"
+                            />
+                            <FaSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                        </div>
+                        <Link to="/issue" className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Issue New Certificate
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}
@@ -188,52 +203,57 @@ const Dashboard = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    transactions.map((tx) => (
-                                        <tr key={tx.id} className="hover:bg-dark-800/30 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="font-mono text-xs text-primary-400 truncate w-32" title={tx.docHash}>
-                                                        {tx.docHash}
+                                    transactions
+                                        .filter(tx =>
+                                            tx.docHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            tx.issuer.toLowerCase().includes(searchTerm.toLowerCase())
+                                        )
+                                        .map((tx) => (
+                                            <tr key={tx.id} className="hover:bg-dark-800/30 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-mono text-xs text-primary-400 truncate w-32" title={tx.docHash}>
+                                                            {tx.docHash}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-500 truncate w-32" title={tx.txHash}>
+                                                            TX: {tx.txHash}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${tx.status === 'confirmed' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                                                        }`}>
+                                                        {tx.status}
                                                     </span>
-                                                    <span className="text-[10px] text-gray-500 truncate w-32" title={tx.txHash}>
-                                                        TX: {tx.txHash}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="font-mono text-xs text-gray-400" title={tx.issuer}>
+                                                        {tx.issuer.substring(0, 6)}...{tx.issuer.substring(tx.issuer.length - 4)}
                                                     </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${tx.status === 'confirmed' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
-                                                    }`}>
-                                                    {tx.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="font-mono text-xs text-gray-400" title={tx.issuer}>
-                                                    {tx.issuer.substring(0, 6)}...{tx.issuer.substring(tx.issuer.length - 4)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-xs text-gray-400">
-                                                {formatDate(tx.timestamp)}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleRevoke(tx.docHash)}
-                                                        disabled={actionLoading === tx.docHash}
-                                                        className="text-xs font-bold text-red-500 hover:text-red-400 transition-colors disabled:opacity-50"
-                                                    >
-                                                        {actionLoading === tx.docHash ? 'Wait...' : 'Revoke'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleUnrevoke(tx.docHash)}
-                                                        disabled={actionLoading === tx.docHash}
-                                                        className="text-xs font-bold text-green-500 hover:text-green-400 transition-colors disabled:opacity-50"
-                                                    >
-                                                        Unrevoke
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-gray-400">
+                                                    {formatDate(tx.timestamp)}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleRevoke(tx.docHash)}
+                                                            disabled={actionLoading === tx.docHash}
+                                                            className="text-xs font-bold text-red-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                                                        >
+                                                            {actionLoading === tx.docHash ? 'Wait...' : 'Revoke'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleUnrevoke(tx.docHash)}
+                                                            disabled={actionLoading === tx.docHash}
+                                                            className="text-xs font-bold text-green-500 hover:text-green-400 transition-colors disabled:opacity-50"
+                                                        >
+                                                            Unrevoke
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
                                 )}
                             </tbody>
                         </table>

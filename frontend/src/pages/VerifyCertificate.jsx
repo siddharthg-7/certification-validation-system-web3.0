@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import WalletConnect from '../components/WalletConnect';
 import FileUpload from '../components/FileUpload';
+import FloatingLabelInput from '../components/FloatingLabelInput';
+import { FaFingerprint, FaCheckCircle, FaSearch } from 'react-icons/fa';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -10,10 +12,13 @@ const VerifyCertificate = () => {
     const [file, setFile] = useState(null);
     const [isVerifying, setIsVerifying] = useState(false);
     const [result, setResult] = useState(null);
+    const [manualHash, setManualHash] = useState('');
 
-    const handleVerify = async () => {
-        if (!file) {
-            alert('Please upload a certificate file');
+    const handleVerify = async (hashToVerify = null) => {
+        const isManual = typeof hashToVerify === 'string';
+
+        if (!isManual && !file) {
+            alert('Please upload a certificate file or enter a hash');
             return;
         }
 
@@ -21,14 +26,18 @@ const VerifyCertificate = () => {
         setResult(null);
 
         try {
-            const formData = new FormData();
-            formData.append('certificate', file);
-
-            const response = await axios.post(`${API_URL}/api/verify`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            let response;
+            if (isManual) {
+                response = await axios.post(`${API_URL}/api/verify-hash`, { docHash: hashToVerify });
+            } else {
+                const formData = new FormData();
+                formData.append('certificate', file);
+                response = await axios.post(`${API_URL}/api/verify`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+            }
 
             setResult(response.data);
         } catch (error) {
@@ -222,33 +231,66 @@ const VerifyCertificate = () => {
                         </p>
                     </div>
 
-                    {/* Upload Section */}
+                    {/* Verification Hub */}
                     <div className="card mb-8">
-                        <FileUpload
-                            onFileSelect={setFile}
-                            label="Certificate to Verify"
-                            accept="*"
-                        />
+                        <div className="flex border-b border-dark-800 mb-6">
+                            <button className="px-6 py-3 border-b-2 border-primary-500 text-primary-500 font-bold transition-all">
+                                File Upload
+                            </button>
+                            {/* We could add a tab for Manual Hash here in future redesigns */}
+                        </div>
 
-                        <button
-                            onClick={handleVerify}
-                            disabled={!file || isVerifying}
-                            className="btn-primary w-full mt-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isVerifying ? (
-                                <>
-                                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block mr-2"></div>
-                                    Analysing Layers...
-                                </>
-                            ) : (
-                                <>
-                                    <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Verify Certificate
-                                </>
-                            )}
-                        </button>
+                        <div className="space-y-6">
+                            <FileUpload
+                                onFileSelect={setFile}
+                                label="Certificate to Verify"
+                                accept="*"
+                            />
+
+                            <div className="relative flex items-center py-4">
+                                <div className="flex-grow border-t border-dark-700"></div>
+                                <span className="flex-shrink mx-4 text-gray-500 text-xs uppercase tracking-widest font-bold">OR</span>
+                                <div className="flex-grow border-t border-dark-700"></div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <FloatingLabelInput
+                                    label="Enter Certificate Hash Manually"
+                                    value={manualHash}
+                                    onChange={(e) => setManualHash(e.target.value)}
+                                    id="manualHash"
+                                />
+
+                                <button
+                                    onClick={() => handleVerify(manualHash)}
+                                    disabled={!manualHash || isVerifying}
+                                    className="btn-secondary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    <FaFingerprint />
+                                    Verify by Hash
+                                </button>
+                            </div>
+
+                            <div className="border-t border-dark-800 pt-6">
+                                <button
+                                    onClick={() => handleVerify()}
+                                    disabled={!file || isVerifying}
+                                    className="btn-primary w-full text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isVerifying ? (
+                                        <>
+                                            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block mr-2"></div>
+                                            Analysing Layers...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FaSearch className="inline mr-2" />
+                                            Verify Uploaded File
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Result Section */}
