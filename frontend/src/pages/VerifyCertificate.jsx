@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import WalletConnect from '../components/WalletConnect';
+import Navbar from '../components/Navbar';
 import FileUpload from '../components/FileUpload';
 import FloatingLabelInput from '../components/FloatingLabelInput';
-import { FaFingerprint, FaCheckCircle, FaSearch } from 'react-icons/fa';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const VerifyCertificate = () => {
+    const [activeTab, setActiveTab] = useState('file'); // 'file' | 'hash'
     const [file, setFile] = useState(null);
+    const [manualHash, setManualHash] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [result, setResult] = useState(null);
-    const [manualHash, setManualHash] = useState('');
 
-    const handleVerify = async (hashToVerify = null) => {
-        const isManual = typeof hashToVerify === 'string';
-
-        if (!isManual && !file) {
-            alert('Please upload a certificate file or enter a hash');
+    const handleVerify = async (mode = activeTab) => {
+        if (mode === 'file' && !file) {
+            alert('Please attach a certificate file to verify.');
+            return;
+        }
+        if (mode === 'hash' && !manualHash.trim()) {
+            alert('Please enter a valid certificate SHA-256 hash.');
             return;
         }
 
@@ -27,15 +29,15 @@ const VerifyCertificate = () => {
 
         try {
             let response;
-            if (isManual) {
-                response = await axios.post(`${API_URL}/api/verify-hash`, { docHash: hashToVerify });
+            if (mode === 'hash') {
+                response = await axios.post(`${API_URL}/api/verify-hash`, {
+                    docHash: manualHash.trim()
+                });
             } else {
                 const formData = new FormData();
                 formData.append('certificate', file);
                 response = await axios.post(`${API_URL}/api/verify`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                    headers: { 'Content-Type': 'multipart/form-data' }
                 });
             }
 
@@ -44,7 +46,7 @@ const VerifyCertificate = () => {
             console.error('Verification error:', error);
             setResult({
                 valid: false,
-                message: error.response?.data?.message || 'Verification failed',
+                message: error.response?.data?.message || error.response?.data?.error || 'Verification query failed',
                 details: error.response?.data?.details || {},
                 error: error.message
             });
@@ -55,8 +57,7 @@ const VerifyCertificate = () => {
 
     const formatDate = (timestamp) => {
         if (!timestamp) return 'N/A';
-        const date = new Date(parseInt(timestamp) * 1000);
-        return date.toLocaleDateString('en-US', {
+        return new Date(parseInt(timestamp) * 1000).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -65,299 +66,409 @@ const VerifyCertificate = () => {
         });
     };
 
-    const renderVerificationLayers = (details) => {
-        if (!details) return null;
-
-        return (
-            <div className="bg-dark-900 rounded-lg p-4 mb-4 border border-dark-800">
-                <h4 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Multi-Layer Analysis</h4>
-                <div className="space-y-3">
-                    {/* Layer 1: Binary */}
-                    <div className="flex justify-between items-center p-2 rounded bg-dark-950/50">
-                        <div className="flex items-center gap-3">
-                            <span className="text-gray-300 font-medium">1. Binary Integrity</span>
-                            <span className="text-xs text-gray-500">(Exact File Match)</span>
-                        </div>
-                        <div>
-                            {details.binaryMatch ? (
-                                <span className="text-green-500 font-bold flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    MATCH
-                                </span>
-                            ) : (
-                                <span className="text-red-500 font-bold flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                    MISMATCH
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Layer 2: Content */}
-                    <div className="flex justify-between items-center p-2 rounded bg-dark-950/50">
-                        <div className="flex items-center gap-3">
-                            <span className="text-gray-300 font-medium">2. Content Analysis</span>
-                            <span className="text-xs text-gray-500">(OCR / Text Extraction)</span>
-                        </div>
-                        <div>
-                            {details.contentMatch ? (
-                                <span className="text-green-500 font-bold flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    VERIFIED
-                                </span>
-                            ) : (
-                                <span className="text-red-500 font-bold flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                    FAILED
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Layer 3: Image Similarity */}
-                    <div className="flex justify-between items-center p-2 rounded bg-dark-950/50">
-                        <div className="flex items-center gap-3">
-                            <span className="text-gray-300 font-medium">3. Image Similarity</span>
-                            <span className="text-xs text-gray-500">(Perceptual Hash)</span>
-                        </div>
-                        <div>
-                            <span className={`font-bold ${details.imageSimilarity >= 90 ? 'text-green-500' : details.imageSimilarity > 70 ? 'text-yellow-500' : 'text-gray-500'}`}>
-                                {details.imageSimilarity ? `${details.imageSimilarity}% Match` : 'N/A'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const renderCertificateDetails = (cert) => (
-        <div className="space-y-4">
-            <div className="bg-dark-900 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-gray-400 mb-3">Certificate Details</h4>
-                <div className="space-y-3">
-                    {cert.metadata && (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span className="text-xs text-gray-500">Student Name</span>
-                                    <p className="text-gray-200 font-medium">{cert.metadata.studentName}</p>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-gray-500">Course</span>
-                                    <p className="text-gray-200 font-medium">{cert.metadata.courseName}</p>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-gray-500">Institution</span>
-                                    <p className="text-gray-200 font-medium">{cert.metadata.institution}</p>
-                                </div>
-                                {cert.metadata.grade && (
-                                    <div>
-                                        <span className="text-xs text-gray-500">Grade</span>
-                                        <p className="text-gray-200 font-medium">{cert.metadata.grade}</p>
-                                    </div>
-                                )}
-                            </div>
-                            {cert.metadata.additionalInfo && (
-                                <div>
-                                    <span className="text-xs text-gray-500">Additional Information</span>
-                                    <p className="text-gray-200">{cert.metadata.additionalInfo}</p>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
-
-            <div className="bg-dark-900 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-gray-400 mb-3">Blockchain Information</h4>
-                <div className="space-y-2 text-sm">
-                    <div>
-                        <span className="text-gray-500">Issuer Address:</span>
-                        <p className="font-mono text-primary-400 break-all">{cert.issuer}</p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500">Issue Date:</span>
-                        <p className="text-gray-200">{formatDate(cert.timestamp)}</p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500">Status:</span>
-                        <p className={`font-semibold ${cert.isRevoked ? 'text-orange-500' : 'text-green-500'}`}>
-                            {cert.isRevoked ? 'REVOKED' : 'ACTIVE'}
-                        </p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500">Document Hash (Binary):</span>
-                        <p className="font-mono text-primary-400 break-all">{cert.docHash}</p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500">IPFS CID:</span>
-                        <p className="font-mono text-primary-400 break-all">{cert.ipfsCID}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    const cert = result?.certificate;
+    const details = result?.details;
+    const isRevoked = cert?.isRevoked || result?.message?.toLowerCase().includes('revoked');
+    const isValid = result?.valid && !isRevoked;
 
     return (
-        <div className="min-h-screen bg-dark-950">
-            {/* Header */}
-            <header className="border-b border-dark-800">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <Link to="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </div>
-                        <h1 className="text-2xl font-bold gradient-text">CertiChain</h1>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <Link to="/issue" className="text-gray-400 hover:text-primary-500 transition-colors">
-                            Issue Certificate
-                        </Link>
-                        <WalletConnect />
-                    </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+            <Navbar />
 
-            {/* Main Content */}
-            <div className="container mx-auto px-4 py-12">
-                <div className="max-w-3xl mx-auto">
-                    <div className="mb-8">
-                        <h2 className="text-4xl font-bold mb-2">Verify Certificate</h2>
-                        <p className="text-gray-400">
-                            Perform a multi-layer verification check on your certificate document.
-                        </p>
+            {/* Page Header */}
+            <div className="bg-white border-b border-slate-200 py-8">
+                <div className="max-w-4xl mx-auto px-4 sm:px-8">
+                    {/* Breadcrumbs */}
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                        <Link to="/" className="hover:text-slate-800">Home</Link>
+                        <span>/</span>
+                        <Link to="/dashboard" className="hover:text-slate-800">Registry</Link>
+                        <span>/</span>
+                        <span className="text-slate-800 font-medium">Verify Credential</span>
                     </div>
 
-                    {/* Verification Hub */}
-                    <div className="card mb-8">
-                        <div className="flex border-b border-dark-800 mb-6">
-                            <button className="px-6 py-3 border-b-2 border-primary-500 text-primary-500 font-bold transition-all">
-                                File Upload
-                            </button>
-                            {/* We could add a tab for Manual Hash here in future redesigns */}
-                        </div>
-
-                        <div className="space-y-6">
-                            <FileUpload
-                                onFileSelect={setFile}
-                                label="Certificate to Verify"
-                                accept="*"
-                            />
-
-                            <div className="relative flex items-center py-4">
-                                <div className="flex-grow border-t border-dark-700"></div>
-                                <span className="flex-shrink mx-4 text-gray-500 text-xs uppercase tracking-widest font-bold">OR</span>
-                                <div className="flex-grow border-t border-dark-700"></div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <FloatingLabelInput
-                                    label="Enter Certificate Hash Manually"
-                                    value={manualHash}
-                                    onChange={(e) => setManualHash(e.target.value)}
-                                    id="manualHash"
-                                />
-
-                                <button
-                                    onClick={() => handleVerify(manualHash)}
-                                    disabled={!manualHash || isVerifying}
-                                    className="btn-secondary w-full flex items-center justify-center gap-2 disabled:opacity-50"
-                                >
-                                    <FaFingerprint />
-                                    Verify by Hash
-                                </button>
-                            </div>
-
-                            <div className="border-t border-dark-800 pt-6">
-                                <button
-                                    onClick={() => handleVerify()}
-                                    disabled={!file || isVerifying}
-                                    className="btn-primary w-full text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isVerifying ? (
-                                        <>
-                                            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block mr-2"></div>
-                                            Analysing Layers...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaSearch className="inline mr-2" />
-                                            Verify Uploaded File
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Result Section */}
-                    {result && (
-                        <div className={`card ${result.valid && !result.certificate?.isRevoked ? 'bg-green-500/10 border-green-500/30 glow-green' : result.certificate?.isRevoked ? 'bg-orange-500/10 border-orange-500/30 glow' : 'bg-red-500/10 border-red-500/30 glow-red'}`}>
-
-                            {/* Verdict Header */}
-                            <div className="flex items-center gap-3 mb-6 p-4 rounded-lg bg-dark-950/30">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${result.valid && !result.certificate?.isRevoked ? 'bg-green-500/20 text-green-500' : result.certificate?.isRevoked ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'}`}>
-                                    {result.valid && !result.certificate?.isRevoked ? (
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    ) : (
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className={`text-xl font-bold ${result.valid && !result.certificate?.isRevoked ? 'text-green-500' : result.certificate?.isRevoked ? 'text-orange-500' : 'text-red-500'}`}>
-                                        {result.valid ? (result.certificate?.isRevoked ? 'REVOKED' : 'VALID CERTIFICATE') : 'INVALID CERTIFICATE'}
-                                    </h3>
-                                    <p className="text-sm text-gray-400">
-                                        {result.message}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Multi-Layer Analysis Display */}
-                            {renderVerificationLayers(result.details)}
-
-                            {/* Certificate Details if Valid */}
-                            {result.valid && result.certificate && renderCertificateDetails(result.certificate)}
-
-                            {/* Error Details if Invalid */}
-                            {!result.valid && (
-                                <div className="bg-dark-900 rounded-lg p-4 mt-4">
-                                    <h4 className="text-sm font-semibold text-red-400 mb-2">Failure Analysis:</h4>
-                                    <p className="text-sm text-gray-400 mb-2">The certificate could not be verified by any layer:</p>
-                                    <ul className="list-disc list-inside text-gray-400 space-y-1 text-sm">
-                                        <li>Binary hash did not match any record.</li>
-                                        <li>Extracted content did not match any record.</li>
-                                        <li>No similar images found above confidence threshold.</li>
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Info Box */}
-                    {!result && (
-                        <div className="card bg-primary-500/10 border-primary-500/30">
-                            <div className="flex gap-3">
-                                <svg className="w-6 h-6 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <div className="text-sm text-gray-300">
-                                    <p className="font-semibold mb-1">Multi-Layer Intelligence</p>
-                                    <p className="text-gray-400">
-                                        Our new verification engine uses a hybrid approach:
-                                        <br />1. <strong>Binary:</strong> Checks strict file integrity.
-                                        <br />2. <strong>Content:</strong> Extracts and matches text content.
-                                        <br />3. <strong>Result:</strong> Intelligent match confirmation.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                        Public Credential Verification Portal
+                    </h1>
+                    <p className="text-sm text-slate-600 mt-1">
+                        Verify the cryptographic authenticity and tamper-resistance of certificates anchored on the Ethereum ledger.
+                    </p>
                 </div>
             </div>
+
+            {/* Main Content Area */}
+            <main className="flex-1 py-10">
+                <div className="max-w-4xl mx-auto px-4 sm:px-8 space-y-8">
+
+                    {/* Verification Input Hub Card */}
+                    <div className="card">
+                        <div className="card-header">
+                            <div>
+                                <h2 className="card-title">1. Verification Method</h2>
+                                <p className="card-subtitle">
+                                    Verify by uploading the authentic document or directly searching by cryptographic SHA-256 hash.
+                                </p>
+                            </div>
+
+                            {/* Mode Tabs */}
+                            <div className="flex bg-slate-100 p-0.5 rounded-md border border-slate-200 text-xs font-semibold">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('file')}
+                                    className={`px-3 py-1.5 rounded ${activeTab === 'file'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                        }`}
+                                >
+                                    Document Upload
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('hash')}
+                                    className={`px-3 py-1.5 rounded ${activeTab === 'hash'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                        }`}
+                                >
+                                    Hash Lookup
+                                </button>
+                            </div>
+                        </div>
+
+                        {activeTab === 'file' ? (
+                            <div className="space-y-5">
+                                <FileUpload
+                                    onFileSelect={setFile}
+                                    label="Upload Certificate for Multi-Layer Verification"
+                                    accept="*"
+                                />
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleVerify('file')}
+                                        disabled={!file || isVerifying}
+                                        className="btn-primary py-2.5 px-6 text-sm"
+                                    >
+                                        {isVerifying ? (
+                                            <>
+                                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                                <span>Analyzing Integrity...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span>Verify Document Authenticity</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <FloatingLabelInput
+                                    label="Certificate SHA-256 Digest (0x... or 64-character hex)"
+                                    id="manualHash"
+                                    value={manualHash}
+                                    onChange={(e) => setManualHash(e.target.value)}
+                                    placeholder="e.g. 0x8f2a93c71e0b5d4e..."
+                                />
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleVerify('hash')}
+                                        disabled={!manualHash.trim() || isVerifying}
+                                        className="btn-primary py-2.5 px-6 text-sm"
+                                    >
+                                        {isVerifying ? (
+                                            <>
+                                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                                <span>Querying Blockchain...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                                <span>Query Ledger by Hash</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Verification Result Report */}
+                    {result && (
+                        <div className="space-y-6">
+
+                            {/* Status Banner */}
+                            {isValid ? (
+                                <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-5 flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-lg font-bold">
+                                        ✓
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="badge-valid text-[11px]">VERIFIED AUTHENTIC</span>
+                                            <span className="text-xs font-mono text-emerald-800 font-medium">
+                                                Consensus Validated
+                                            </span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-emerald-950 mt-1">
+                                            Authentic &amp; Valid Credential
+                                        </h3>
+                                        <p className="text-xs text-emerald-900 mt-0.5 leading-relaxed">
+                                            {result.message || 'This credential has been mathematically validated against the Ethereum blockchain registry.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : isRevoked ? (
+                                <div className="bg-amber-50 border border-amber-300 rounded-lg p-5 flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center flex-shrink-0 text-lg font-bold">
+                                        !
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="badge-revoked text-[11px]">STATUS: REVOKED</span>
+                                            <span className="text-xs font-mono text-amber-800 font-medium">
+                                                On-Chain Invalidation
+                                            </span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-amber-950 mt-1">
+                                            Certificate Has Been Revoked
+                                        </h3>
+                                        <p className="text-xs text-amber-900 mt-0.5 leading-relaxed">
+                                            This certificate was originally anchored on the ledger but has been formally marked as revoked by the authorized issuing institution.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="bg-red-50 border border-red-300 rounded-lg p-5 flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center flex-shrink-0 text-lg font-bold">
+                                        ✕
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="badge-invalid text-[11px]">VERIFICATION FAILED</span>
+                                            <span className="text-xs font-mono text-red-800 font-medium">
+                                                No Ledger Record
+                                            </span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-red-950 mt-1">
+                                            Certificate Not Found or Tampered
+                                        </h3>
+                                        <p className="text-xs text-red-900 mt-0.5 leading-relaxed">
+                                            {result.message || 'The cryptographic digest of this document does not match any authorized record on the blockchain registry.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section 1: Multi-Layer Cryptographic Integrity Audit */}
+                            {details && (
+                                <div className="card">
+                                    <div className="card-header">
+                                        <div>
+                                            <h3 className="card-title">Cryptographic Integrity Audit</h3>
+                                            <p className="card-subtitle">
+                                                Multi-stage verification protocol results across raw binary, OCR, and visual layers.
+                                            </p>
+                                        </div>
+                                        <span className="badge-neutral text-[11px]">Audit Telemetry</span>
+                                    </div>
+
+                                    <div className="overflow-x-auto">
+                                        <table className="table-formal">
+                                            <thead>
+                                                <tr>
+                                                    <th>Verification Stage</th>
+                                                    <th>Description</th>
+                                                    <th className="text-right">Verdict</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td className="font-semibold text-slate-900">
+                                                        Layer 1: SHA-256 Binary Integrity
+                                                    </td>
+                                                    <td className="text-xs text-slate-600">
+                                                        Exact bitwise file hash comparison against on-chain anchor
+                                                    </td>
+                                                    <td className="text-right">
+                                                        {details.binaryMatch ? (
+                                                            <span className="badge-valid text-[11px]">EXACT MATCH</span>
+                                                        ) : (
+                                                            <span className="badge-invalid text-[11px]">MISMATCH</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="font-semibold text-slate-900">
+                                                        Layer 2: OCR Content Analysis
+                                                    </td>
+                                                    <td className="text-xs text-slate-600">
+                                                        Optical character extraction &amp; semantic pattern matching
+                                                    </td>
+                                                    <td className="text-right">
+                                                        {details.contentMatch ? (
+                                                            <span className="badge-valid text-[11px]">VERIFIED</span>
+                                                        ) : (
+                                                            <span className="badge-invalid text-[11px]">NOT VERIFIED</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="font-semibold text-slate-900">
+                                                        Layer 3: Visual Perceptual Similarity
+                                                    </td>
+                                                    <td className="text-xs text-slate-600">
+                                                        Perceptual hash (pHash) visual distance analysis
+                                                    </td>
+                                                    <td className="text-right">
+                                                        {details.imageSimilarity !== null && details.imageSimilarity !== undefined ? (
+                                                            <span className={details.imageSimilarity >= 90 ? "badge-valid text-[11px]" : "badge-invalid text-[11px]"}>
+                                                                {details.imageSimilarity}% SIMILARITY
+                                                            </span>
+                                                        ) : (
+                                                            <span className="badge-neutral text-[11px]">N/A</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section 2: Credential & Recipient Record (if metadata returned) */}
+                            {cert?.metadata && (
+                                <div className="card">
+                                    <div className="card-header">
+                                        <div>
+                                            <h3 className="card-title">Credential Metadata Record</h3>
+                                            <p className="card-subtitle">
+                                                Decrypted official candidate and accreditation information.
+                                            </p>
+                                        </div>
+                                        <span className="badge-neutral text-[11px]">IPFS Decrypted</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                        <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                            <span className="label-formal">Candidate Name</span>
+                                            <p className="text-sm font-semibold text-slate-900">
+                                                {cert.metadata.studentName || 'Not specified'}
+                                            </p>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                            <span className="label-formal">Course / Program</span>
+                                            <p className="text-sm font-semibold text-slate-900">
+                                                {cert.metadata.courseName || 'Not specified'}
+                                            </p>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                            <span className="label-formal">Issuing Institution</span>
+                                            <p className="text-sm font-semibold text-slate-900">
+                                                {cert.metadata.institution || 'Not specified'}
+                                            </p>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                            <span className="label-formal">Official Date of Issue</span>
+                                            <p className="text-sm font-semibold text-slate-900">
+                                                {cert.metadata.issueDate || 'Not specified'}
+                                            </p>
+                                        </div>
+
+                                        {cert.metadata.grade && (
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                                <span className="label-formal">Grade / Classification</span>
+                                                <p className="text-sm font-semibold text-slate-900">
+                                                    {cert.metadata.grade}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {cert.metadata.additionalInfo && (
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded sm:col-span-2">
+                                                <span className="label-formal">Official Remarks</span>
+                                                <p className="text-xs text-slate-700 leading-relaxed">
+                                                    {cert.metadata.additionalInfo}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section 3: Blockchain Provenance & Audit Trail */}
+                            {cert && (
+                                <div className="card">
+                                    <div className="card-header">
+                                        <div>
+                                            <h3 className="card-title">Blockchain Provenance &amp; Ledger Audit</h3>
+                                            <p className="card-subtitle">
+                                                Immutable on-chain parameters and cryptographic storage references.
+                                            </p>
+                                        </div>
+                                        <span className="badge-neutral text-[11px]">EVM Smart Contract</span>
+                                    </div>
+
+                                    <div className="space-y-3 font-mono text-xs">
+                                        <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                            <span className="block text-[11px] font-sans font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                                                Document SHA-256 Hash
+                                            </span>
+                                            <span className="text-slate-900 break-all select-all font-semibold">
+                                                {cert.docHash}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                                <span className="block text-[11px] font-sans font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                                                    Authorized Issuer Address
+                                                </span>
+                                                <span className="text-slate-800 break-all select-all">
+                                                    {cert.issuer}
+                                                </span>
+                                            </div>
+
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                                <span className="block text-[11px] font-sans font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                                                    Block Registration Timestamp
+                                                </span>
+                                                <span className="text-slate-800 font-sans">
+                                                    {formatDate(cert.timestamp)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {cert.ipfsCID && (
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                                <span className="block text-[11px] font-sans font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                                                    IPFS Encrypted Payload CID
+                                                </span>
+                                                <span className="text-slate-800 break-all select-all">
+                                                    {cert.ipfsCID}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+                    )}
+                </div>
+            </main>
         </div>
     );
 };

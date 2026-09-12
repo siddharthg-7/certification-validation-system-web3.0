@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useWeb3 } from '../hooks/useWeb3';
-import WalletConnect from '../components/WalletConnect';
+import Navbar from '../components/Navbar';
 import FileUpload from '../components/FileUpload';
 import TransactionModal from '../components/TransactionModal';
 import FloatingLabelInput from '../components/FloatingLabelInput';
@@ -15,61 +15,44 @@ const IssueCertificate = () => {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    // Create and revoke object URL for preview
     useEffect(() => {
-        if (!file) {
-            setPreviewUrl(null);
-            return;
-        }
-
+        if (!file) { setPreviewUrl(null); return; }
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
-
-        // Cleanup to avoid memory leaks
         return () => URL.revokeObjectURL(objectUrl);
     }, [file]);
+
     const [formData, setFormData] = useState({
         studentName: '',
         courseName: '',
         institution: '',
-        issueDate: '',
+        issueDate: new Date().toISOString().split('T')[0],
         grade: '',
         additionalInfo: ''
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalState, setModalState] = useState({
-        isOpen: false,
-        status: 'pending',
-        txHash: null,
-        message: '',
-        error: null
+        isOpen: false, status: 'pending', txHash: null, message: '', error: null
     });
-
     const [result, setResult] = useState(null);
 
     const handleInputChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!isConnected) {
-            alert('Please connect your wallet first');
+            alert('Please connect your institutional wallet to proceed.');
             return;
         }
-
         if (!isCorrectNetwork) {
-            alert('Please switch to the correct network');
+            alert('Please switch to the designated blockchain network in your wallet.');
             return;
         }
-
         if (!file) {
-            alert('Please upload a certificate file');
+            alert('Please attach a certificate document file.');
             return;
         }
 
@@ -79,21 +62,17 @@ const IssueCertificate = () => {
             isOpen: true,
             status: 'pending',
             txHash: null,
-            message: 'Issuing certificate on blockchain...',
+            message: 'Broadcasting cryptographic hashes and anchoring to Ethereum smart contract...',
             error: null
         });
 
         try {
             const formDataToSend = new FormData();
             formDataToSend.append('certificate', file);
-            Object.keys(formData).forEach(key => {
-                formDataToSend.append(key, formData[key]);
-            });
+            Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
 
             const response = await axios.post(`${API_URL}/api/issue`, formDataToSend, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
 
             setResult(response.data.data);
@@ -101,17 +80,16 @@ const IssueCertificate = () => {
                 isOpen: true,
                 status: 'success',
                 txHash: response.data.data.transactionHash,
-                message: 'Certificate issued successfully!',
+                message: 'Certificate successfully registered and anchored on the blockchain ledger.',
                 error: null
             });
 
-            // Reset form
             setFile(null);
             setFormData({
                 studentName: '',
                 courseName: '',
                 institution: '',
-                issueDate: '',
+                issueDate: new Date().toISOString().split('T')[0],
                 grade: '',
                 additionalInfo: ''
             });
@@ -122,7 +100,7 @@ const IssueCertificate = () => {
                 isOpen: true,
                 status: 'error',
                 txHash: null,
-                message: 'Failed to issue certificate',
+                message: 'Failed to record certificate on the ledger.',
                 error: error.response?.data?.details || error.message
             });
         } finally {
@@ -130,242 +108,244 @@ const IssueCertificate = () => {
         }
     };
 
-    const closeModal = () => {
-        setModalState({ ...modalState, isOpen: false });
-    };
+    const closeModal = () => setModalState({ ...modalState, isOpen: false });
 
     return (
-        <div className="min-h-screen bg-dark-950">
-            {/* Header */}
-            <header className="border-b border-dark-800">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <Link to="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </div>
-                        <h1 className="text-2xl font-bold gradient-text">CertiChain</h1>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <Link to="/verify" className="text-gray-400 hover:text-primary-500 transition-colors">
-                            Verify Certificate
-                        </Link>
-                        <WalletConnect />
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+            <Navbar />
+
+            {/* Page Header */}
+            <div className="bg-white border-b border-slate-200 py-8">
+                <div className="max-w-4xl mx-auto px-4 sm:px-8">
+                    {/* Breadcrumbs */}
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                        <Link to="/" className="hover:text-slate-800">Home</Link>
+                        <span>/</span>
+                        <Link to="/dashboard" className="hover:text-slate-800">Registry</Link>
+                        <span>/</span>
+                        <span className="text-slate-800 font-medium">Issue Credential</span>
                     </div>
+
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                        Issue Academic / Professional Certificate
+                    </h1>
+                    <p className="text-sm text-slate-600 mt-1">
+                        Anchor a tamper-proof credential to the Ethereum ledger with cryptographic hashing and encrypted archival.
+                    </p>
                 </div>
-            </header>
+            </div>
 
-            {/* Main Content */}
-            <div className="container mx-auto px-4 py-12">
-                <div className="max-w-3xl mx-auto">
-                    <div className="mb-8">
-                        <h2 className="text-4xl font-bold mb-2">Issue Certificate</h2>
-                        <p className="text-gray-400">
-                            Upload a certificate and add metadata to issue it on the blockchain
-                        </p>
-                    </div>
+            {/* Main Content Area */}
+            <main className="flex-1 py-10">
+                <div className="max-w-4xl mx-auto px-4 sm:px-8">
 
+                    {/* Wallet connection warning */}
                     {!isConnected && (
-                        <div className="card mb-8 bg-yellow-500/10 border-yellow-500/30">
-                            <div className="flex items-center gap-3">
-                                <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <p className="text-yellow-500">Please connect your wallet to issue certificates</p>
+                        <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-8 flex items-start gap-3 text-amber-900 text-sm">
+                            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <div>
+                                <p className="font-semibold">Institutional Wallet Not Connected</p>
+                                <p className="text-xs text-amber-800 mt-0.5">
+                                    Please click "Connect Wallet" at the top right to authorize and sign blockchain transactions as an approved issuer.
+                                </p>
                             </div>
                         </div>
                     )}
 
+                    {/* Success Attestation Banner (if result exists) */}
+                    {result && (
+                        <div className="card mb-8 border-emerald-300 bg-emerald-50/50">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+                                    ✓
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-base font-bold text-emerald-900">
+                                        Certificate Successfully Registered
+                                    </h3>
+                                    <p className="text-xs text-emerald-800 mt-0.5">
+                                        The document digest and metadata have been anchored onto the immutable blockchain registry.
+                                    </p>
+
+                                    <div className="mt-4 bg-white border border-emerald-200 rounded p-3 text-xs space-y-2 font-mono">
+                                        <div>
+                                            <span className="text-slate-500 font-sans font-semibold">Document Hash: </span>
+                                            <span className="text-slate-800 break-all">{result.docHash}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 font-sans font-semibold">Transaction: </span>
+                                            <span className="text-slate-800 break-all">{result.transactionHash}</span>
+                                        </div>
+                                        {result.ipfsCID && (
+                                            <div>
+                                                <span className="text-slate-500 font-sans font-semibold">IPFS Encrypted CID: </span>
+                                                <span className="text-slate-800 break-all">{result.ipfsCID}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-4 flex gap-3">
+                                        <Link to="/verify" className="btn-primary text-xs px-3.5 py-1.5">
+                                            Verify in Public Portal →
+                                        </Link>
+                                        <Link to="/dashboard" className="btn-secondary text-xs px-3.5 py-1.5">
+                                            View in Registry Ledger
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Form Container */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* File Upload */}
+
+                        {/* SECTION 1: Document Upload */}
                         <div className="card">
+                            <div className="card-header">
+                                <div>
+                                    <h2 className="card-title">1. Document Attachment</h2>
+                                    <p className="card-subtitle">
+                                        Upload the primary digital credential document (PDF or image).
+                                    </p>
+                                </div>
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Required</span>
+                            </div>
+
                             <FileUpload
                                 onFileSelect={setFile}
-                                label="Certificate Document"
+                                label=""
                                 accept="*"
                             />
 
-                            {/* File Preview */}
-                            {file && previewUrl && (
-                                <div className="mt-6 border-t border-dark-700 pt-6">
-                                    <h4 className="text-sm font-medium text-gray-400 mb-4">Document Preview</h4>
-
-                                    <div className="bg-dark-900 rounded-lg p-2 border border-dark-700 overflow-hidden">
-                                        {file.type.startsWith('image/') ? (
-                                            <div className="flex justify-center bg-dark-800/50 rounded">
-                                                <img
-                                                    src={previewUrl}
-                                                    alt="Certificate Preview"
-                                                    className="max-h-[500px] w-auto object-contain"
-                                                />
-                                            </div>
-                                        ) : file.type === 'application/pdf' ? (
-                                            <div className="h-[500px] w-full bg-dark-800/50 rounded relative">
-                                                <iframe
-                                                    src={previewUrl}
-                                                    title="Certificate PDF Preview"
-                                                    className="w-full h-full rounded"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="p-8 text-center text-gray-500 bg-dark-800/30 rounded border border-dashed border-dark-700">
-                                                <svg className="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                <p>Preview not available for this file type.</p>
-                                                <p className="text-sm opacity-75 mt-1">{file.name}</p>
-                                            </div>
-                                        )}
+                            {previewUrl && file && file.type.startsWith('image/') && (
+                                <div className="mt-4 pt-4 border-t border-slate-200">
+                                    <p className="label-formal">Document Preview</p>
+                                    <div className="max-h-48 overflow-hidden rounded border border-slate-200 bg-slate-100 flex items-center justify-center">
+                                        <img src={previewUrl} alt="Attached Preview" className="max-h-48 object-contain" />
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Metadata Form */}
+                        {/* SECTION 2: Credential & Recipient Details */}
                         <div className="card">
-                            <h3 className="text-xl font-bold mb-6">Certificate Metadata</h3>
-
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="card-header">
                                 <div>
-                                    <FloatingLabelInput
-                                        label="Student Name"
-                                        name="studentName"
-                                        value={formData.studentName}
-                                        onChange={handleInputChange}
-                                        id="studentName"
-                                        required
-                                    />
+                                    <h2 className="card-title">2. Credential &amp; Recipient Details</h2>
+                                    <p className="card-subtitle">
+                                        Enter official candidate and institutional accreditation parameters.
+                                    </p>
                                 </div>
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Metadata</span>
+                            </div>
 
-                                <div>
-                                    <FloatingLabelInput
-                                        label="Course Name"
-                                        name="courseName"
-                                        value={formData.courseName}
-                                        onChange={handleInputChange}
-                                        id="courseName"
-                                        required
-                                    />
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <FloatingLabelInput
+                                    label="Student / Recipient Full Name"
+                                    name="studentName"
+                                    value={formData.studentName}
+                                    onChange={handleInputChange}
+                                    id="studentName"
+                                    required
+                                    placeholder="e.g. Alexander Hamilton"
+                                />
 
-                                <div>
-                                    <FloatingLabelInput
-                                        label="Institution"
-                                        name="institution"
-                                        value={formData.institution}
-                                        onChange={handleInputChange}
-                                        id="institution"
-                                        required
-                                    />
-                                </div>
+                                <FloatingLabelInput
+                                    label="Course / Program Name"
+                                    name="courseName"
+                                    value={formData.courseName}
+                                    onChange={handleInputChange}
+                                    id="courseName"
+                                    required
+                                    placeholder="e.g. Master of Public Policy & Administration"
+                                />
 
-                                <div>
-                                    <FloatingLabelInput
-                                        label="Issue Date"
-                                        type="date"
-                                        name="issueDate"
-                                        value={formData.issueDate}
-                                        onChange={handleInputChange}
-                                        id="issueDate"
-                                    />
-                                </div>
+                                <FloatingLabelInput
+                                    label="Issuing Authority / Institution"
+                                    name="institution"
+                                    value={formData.institution}
+                                    onChange={handleInputChange}
+                                    id="institution"
+                                    required
+                                    placeholder="e.g. National Administrative Academy"
+                                />
 
-                                <div>
-                                    <FloatingLabelInput
-                                        label="Grade"
-                                        name="grade"
-                                        value={formData.grade}
-                                        onChange={handleInputChange}
-                                        id="grade"
-                                    />
-                                </div>
+                                <FloatingLabelInput
+                                    label="Official Issue Date"
+                                    type="date"
+                                    name="issueDate"
+                                    value={formData.issueDate}
+                                    onChange={handleInputChange}
+                                    id="issueDate"
+                                    required
+                                />
+
+                                <FloatingLabelInput
+                                    label="Grade / Honors / Score (Optional)"
+                                    name="grade"
+                                    value={formData.grade}
+                                    onChange={handleInputChange}
+                                    id="grade"
+                                    placeholder="e.g. Distinction / First Class / 94.5%"
+                                />
 
                                 <div className="md:col-span-2">
                                     <FloatingLabelInput
-                                        label="Additional Information"
+                                        label="Additional Institutional Remarks (Optional)"
                                         name="additionalInfo"
                                         value={formData.additionalInfo}
                                         onChange={handleInputChange}
                                         id="additionalInfo"
                                         textarea
-                                        rows="3"
+                                        rows={2}
+                                        placeholder="Enter registration license number, faculty signature references, or internal audit codes..."
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={!isConnected || !isCorrectNetwork || isSubmitting || !file}
-                            className="btn-primary w-full text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block mr-2"></div>
-                                    Issuing Certificate...
-                                </>
-                            ) : (
-                                <>
-                                    <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Issue Certificate
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    {/* Result Display */}
-                    {result && (
-                        <div className="card mt-8 bg-green-500/10 border-green-500/30">
-                            <h3 className="text-xl font-bold text-green-500 mb-4 flex items-center gap-2">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Certificate Issued Successfully!
-                            </h3>
-                            <div className="space-y-3 text-sm">
+                        {/* SECTION 3: Cryptographic Sign-Off & Submission */}
+                        <div className="card bg-slate-50 border-slate-300">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div>
-                                    <span className="text-gray-400 font-semibold block mb-1">Blockchain IDs:</span>
-                                    <div className="pl-3 border-l-2 border-green-500/30 space-y-2">
-                                        <div>
-                                            <span className="text-gray-500 text-xs uppercase">Binary Hash</span>
-                                            <p className="font-mono text-primary-400 break-all text-xs">{result.docHash}</p>
-                                        </div>
-                                        {result.contentHash && (
-                                            <div>
-                                                <span className="text-gray-500 text-xs uppercase">Content Hash</span>
-                                                <p className="font-mono text-primary-400 break-all text-xs">{result.contentHash}</p>
-                                            </div>
-                                        )}
-                                        {result.imageHash && (
-                                            <div>
-                                                <span className="text-gray-500 text-xs uppercase">Image Hash</span>
-                                                <p className="font-mono text-primary-400 break-all text-xs">{result.imageHash}</p>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <h3 className="text-sm font-bold text-slate-900">
+                                        Cryptographic Attestation &amp; Registration
+                                    </h3>
+                                    <p className="text-xs text-slate-600 mt-0.5">
+                                        Signing broadcasts the binary SHA-256 hash and encrypted payload reference to the smart contract.
+                                    </p>
                                 </div>
 
-                                <div className="mt-4 pt-4 border-t border-green-500/20">
-                                    <div className="mb-2">
-                                        <span className="text-gray-400">IPFS CID:</span>
-                                        <p className="font-mono text-primary-400 break-all">{result.ipfsCID}</p>
-                                    </div>
-                                    <div className="mb-2">
-                                        <span className="text-gray-400">Transaction Hash:</span>
-                                        <p className="font-mono text-primary-400 break-all">{result.transactionHash}</p>
-                                    </div>
-                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || !isConnected}
+                                    className="btn-primary py-3 px-6 text-sm flex-shrink-0"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                            <span>Broadcasting Transaction...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                            </svg>
+                                            <span>Issue &amp; Anchor on Blockchain</span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
-                    )}
+                    </form>
                 </div>
-            </div>
+            </main>
 
-            {/* Transaction Modal */}
+            {/* Modal for Transaction Feedback */}
             <TransactionModal
                 isOpen={modalState.isOpen}
                 onClose={closeModal}

@@ -278,6 +278,78 @@ router.post('/unrevoke', async (req, res) => {
 });
 
 /**
+ * POST /api/verify-hash
+ * Verify certificate directly by document hash
+ */
+router.post('/verify-hash', async (req, res) => {
+    try {
+        if (!web3Ready) {
+            return res.status(503).json({ error: 'Web3 not initialized' });
+        }
+
+        const { docHash } = req.body;
+        if (!docHash) {
+            return res.status(400).json({ error: 'Document hash is required' });
+        }
+
+        const formattedHash = docHash.startsWith('0x') ? docHash : '0x' + docHash;
+        const certData = await getCertificate(formattedHash);
+
+        if (!certData || !certData.exists) {
+            return res.json({
+                valid: false,
+                message: 'Certificate hash not found in blockchain registry',
+                details: {
+                    binaryMatch: false,
+                    contentMatch: false,
+                    imageSimilarity: null
+                }
+            });
+        }
+
+        let metadata = null;
+        try {
+            if (certData.ipfsCID) {
+                const encryptedData = await retrieveFromIPFS(certData.ipfsCID);
+                const encryptionKey = process.env.AES_ENCRYPTION_KEY || 'default-key-change-this-in-production';
+                metadata = decryptMetadata(encryptedData.encrypted, encryptedData.iv, encryptionKey);
+            }
+        } catch (error) {
+            console.warn('Failed to retrieve metadata for hash:', error.message);
+        }
+
+        const isValid = !certData.isRevoked;
+
+        res.json({
+            valid: isValid,
+            matchType: 'binary',
+            message: certData.isRevoked ? 'Certificate has been REVOKED' : 'Certificate hash verified successfully on-chain',
+            details: {
+                binaryMatch: true,
+                contentMatch: true,
+                imageSimilarity: 100,
+                onChainData: certData
+            },
+            certificate: {
+                docHash: certData.binaryHash || certData.docHash || formattedHash,
+                issuer: certData.issuer,
+                timestamp: certData.timestamp,
+                ipfsCID: certData.ipfsCID,
+                metadata: metadata,
+                isRevoked: certData.isRevoked,
+                issuedDate: new Date(parseInt(certData.timestamp) * 1000).toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('Verify hash error:', error);
+        res.status(500).json({
+            error: 'Failed to verify certificate by hash',
+            details: error.message
+        });
+    }
+});
+
+/**
  * GET /api/cert/:hash
  * Get certificate details by hash
  */

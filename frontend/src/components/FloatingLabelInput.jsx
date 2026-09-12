@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const FloatingLabelInput = ({ label, type = 'text', value, onChange, id, required = false, textarea = false, ...props }) => {
-    const [focused, setFocused] = useState(false);
-
+const FloatingLabelInput = ({
+    label,
+    type = 'text',
+    value,
+    onChange,
+    id,
+    required = false,
+    textarea = false,
+    placeholder = '',
+    className = '',
+    ...props
+}) => {
     return (
-        <div className={`floating-input-container ${focused ? 'focused' : ''}`}>
+        <div className="w-full">
+            {label && (
+                <label htmlFor={id} className="label-formal">
+                    {label} {required && <span className="text-red-500">*</span>}
+                </label>
+            )}
             {textarea ? (
                 <textarea
                     id={id}
                     value={value}
                     onChange={onChange}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    placeholder=" "
                     required={required}
-                    className="block w-full text-white"
+                    placeholder={placeholder || (label ? `Enter ${label.toLowerCase()}...` : '')}
+                    className={`input-formal ${className}`}
+                    rows={props.rows || 3}
                     {...props}
                 />
             ) : (
@@ -23,17 +36,12 @@ const FloatingLabelInput = ({ label, type = 'text', value, onChange, id, require
                     type={type}
                     value={value}
                     onChange={onChange}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    placeholder=" "
                     required={required}
-                    className="block w-full text-white"
+                    placeholder={placeholder || (label ? `Enter ${label.toLowerCase()}...` : '')}
+                    className={`input-formal ${className}`}
                     {...props}
                 />
             )}
-            <label htmlFor={id}>
-                {label} {required && '*'}
-            </label>
         </div>
     );
 };

@@ -156,6 +156,7 @@ export const Web3Provider = ({ children }) => {
             }
         };
         autoConnect();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Save connection state
