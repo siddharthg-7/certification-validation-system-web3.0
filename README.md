@@ -66,11 +66,11 @@ Experience CertiChain locally or explore the interactive demonstration flow:
 
 | Overview / Institutional Portal | Credential Issuance Form |
 | :---: | :---: |
-| ![Portal Overview](https://dummyimage.com/600x340/0f172a/ffffff&text=Institutional+Portal+Overview) | ![Issuance Form](https://dummyimage.com/600x340/f8fafc/0f172a&text=Administrative+Issuance+Form) |
+| ![Portal Overview](screenshots/overview.png) | ![Issuance Form](screenshots/issuance_form.png) |
 
 | Multi-Layer Verification Report | Registry Audit Ledger |
 | :---: | :---: |
-| ![Verification Report](https://dummyimage.com/600x340/059669/ffffff&text=Official+Verification+Report) | ![Audit Ledger](https://dummyimage.com/600x340/0f172a/ffffff&text=Registry+Management+Dashboard) |
+| ![Verification Report](screenshots/verification_report.png) | ![Audit Ledger](screenshots/audit_ledger.png) |
 
 ---
 
