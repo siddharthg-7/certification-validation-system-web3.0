@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { useWeb3 } from '../hooks/useWeb3';
+import {
+    Wallet,
+    AlertTriangle,
+    Copy,
+    CheckCircle
+} from 'reicon-react';
 
 const WalletConnect = () => {
     const {
@@ -25,35 +31,32 @@ const WalletConnect = () => {
         if (account) {
             navigator.clipboard.writeText(account);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
+            setTimeout(() => setCopied(false), 1800);
         }
     };
 
     if (!isConnected) {
         return (
-            <div className="flex flex-col items-end gap-1.5">
+            <div className="flex flex-col items-end gap-1">
                 {error && (
-                    <span className="text-red-600 text-xs font-medium max-w-xs text-right">
+                    <span className="text-rose-400 text-[11px] font-medium max-w-xs text-right bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
                         {error}
                     </span>
                 )}
                 <button
                     onClick={connectWallet}
                     disabled={isConnecting}
-                    className="btn-primary text-xs py-2 px-3.5"
-                    title="Connect Institutional Web3 Wallet"
+                    className="btn-cyber text-xs py-2 px-3.5 tracking-wide"
+                    title="Connect Web3 Provider (MetaMask)"
                 >
                     {isConnecting ? (
                         <>
-                            <div className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                            <div className="animate-spin h-3.5 w-3.5 border-2 border-black border-t-transparent rounded-full" />
                             <span>Connecting...</span>
                         </>
                     ) : (
                         <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
+                            <Wallet size={16} color="#07090e" weight="Filled" />
                             <span>Connect Wallet</span>
                         </>
                     )}
@@ -65,45 +68,47 @@ const WalletConnect = () => {
     return (
         <div className="flex items-center gap-2">
             {!isCorrectNetwork && (
-                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 text-xs px-2.5 py-1 rounded">
-                    <svg className="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <span>Incorrect Network</span>
+                <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs px-2.5 py-1 rounded-md">
+                    <AlertTriangle size={14} color="#f59e0b" />
+                    <span className="font-medium text-[11px]">Wrong Network</span>
                     <button
                         onClick={switchNetwork}
-                        className="ml-1 text-[11px] font-semibold bg-amber-600 hover:bg-amber-700 text-white px-2 py-0.5 rounded transition-colors"
+                        className="ml-1 text-[10px] font-bold bg-amber-500 hover:bg-amber-400 text-obsidian-950 px-2 py-0.5 rounded transition-all shadow-sm"
                     >
                         Switch
                     </button>
                 </div>
             )}
 
-            <div className="inline-flex items-center gap-2 bg-white border border-slate-300 rounded-md px-3 py-1.5 shadow-sm text-xs">
+            <div className="inline-flex items-center gap-2.5 bg-obsidian-900/90 border border-white/10 hover:border-cyber-400/40 rounded-md px-3 py-1.5 shadow-glass text-xs transition-colors">
                 {/* Network indicator dot */}
-                <div className="flex items-center gap-1.5 text-slate-600 border-r border-slate-200 pr-2.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="font-mono text-[11px] font-medium text-slate-700">
+                <div className="flex items-center gap-1.5 text-slate-400 border-r border-white/10 pr-2.5">
+                    <span className="w-2 h-2 rounded-full bg-mint-500 shadow-mint-glow animate-pulse" />
+                    <span className="font-mono text-[11px] font-semibold text-slate-300">
                         EVM {chainId ? `#${chainId}` : ''}
                     </span>
                 </div>
 
-                {/* Account identifier */}
+                {/* Account identifier with copy tooltip */}
                 <button
                     onClick={copyToClipboard}
-                    className="flex items-center gap-1 font-mono text-[11px] font-semibold text-slate-800 hover:text-blue-700 transition-colors"
-                    title="Click to copy public address"
+                    className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-slate-200 hover:text-cyber-400 transition-colors"
+                    title="Click to copy full public key address"
                 >
                     <span>{truncateAddress(account)}</span>
-                    <span className="text-[10px] text-slate-400">
-                        {copied ? '✓' : '⧉'}
+                    <span className="text-slate-400">
+                        {copied ? (
+                            <CheckCircle size={13} color="#00c9a7" />
+                        ) : (
+                            <Copy size={13} color="#94a3b8" />
+                        )}
                     </span>
                 </button>
 
                 {/* Disconnect */}
                 <button
                     onClick={disconnectWallet}
-                    className="text-slate-400 hover:text-red-600 pl-1.5 transition-colors border-l border-slate-200"
+                    className="text-slate-500 hover:text-rose-400 pl-1.5 transition-colors border-l border-white/10"
                     title="Disconnect Session"
                 >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

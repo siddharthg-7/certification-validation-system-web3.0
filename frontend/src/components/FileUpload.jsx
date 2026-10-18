@@ -1,5 +1,11 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import {
+    DocumentUpload,
+    FileCheck,
+    Trash,
+    AlertCircle
+} from 'reicon-react';
 
 const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'Upload Certificate Document' }) => {
     const onDrop = useCallback((acceptedFiles) => {
@@ -28,41 +34,35 @@ const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'U
                 <input {...getInputProps()} />
 
                 {!file ? (
-                    <div className="flex flex-col items-center justify-center py-4 text-center">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 mb-3">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
+                    <div className="flex flex-col items-center justify-center py-5 text-center">
+                        <div className="w-14 h-14 rounded-xl bg-obsidian-850 border border-cyber-400/30 flex items-center justify-center text-cyber-400 mb-3 shadow-cyber-sm group-hover:scale-105 transition-transform">
+                            <DocumentUpload size={28} color="#00f2fe" weight="Outline" />
                         </div>
 
-                        <p className="text-sm font-semibold text-slate-800">
+                        <p className="text-sm font-semibold text-slate-200">
                             {isDragActive ? (
-                                <span className="text-blue-600">Release document to attach</span>
+                                <span className="text-cyber-400 font-bold">Release credential document to attach</span>
                             ) : (
                                 <>
-                                    <span className="text-blue-700 hover:underline">Click to browse file</span>
+                                    <span className="text-cyber-400 hover:underline cursor-pointer">Click to browse file</span>
                                     {' '}or drag &amp; drop document here
                                 </>
                             )}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">
-                            PDF, PNG, JPG or TIFF • Max {(maxSize / 1024 / 1024).toFixed(0)} MB
+                        <p className="text-xs text-slate-400 mt-1.5 font-mono">
+                            PDF, PNG, JPG, or TIFF • Cryptographic SHA-256 digested on ingest (Max {(maxSize / 1024 / 1024).toFixed(0)} MB)
                         </p>
                     </div>
                 ) : (
-                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-md p-3.5 shadow-sm">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 flex-shrink-0">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
+                    <div className="flex items-center justify-between bg-obsidian-850/90 border border-cyber-400/40 rounded-lg p-4 shadow-cyber-sm">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-11 h-11 rounded-lg bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-400 flex-shrink-0">
+                                <FileCheck size={22} color="#00c9a7" />
                             </div>
                             <div className="text-left truncate">
-                                <p className="text-sm font-medium text-slate-900 truncate max-w-sm">{file.name}</p>
-                                <p className="text-xs text-slate-500 font-mono">
-                                    {(file.size / 1024).toFixed(1)} KB • Document Attached
+                                <p className="text-sm font-semibold text-white truncate max-w-sm">{file.name}</p>
+                                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                                    {(file.size / 1024).toFixed(1)} KB • Document Attached &amp; Buffered
                                 </p>
                             </div>
                         </div>
@@ -74,19 +74,21 @@ const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'U
                                 acceptedFiles.length = 0;
                                 onFileSelect(null);
                             }}
-                            className="btn-ghost text-xs px-2.5 py-1 text-red-600 hover:bg-red-50 hover:text-red-700 border border-transparent hover:border-red-200 rounded"
+                            className="btn-danger text-xs px-3 py-1.5 flex items-center gap-1.5"
                             title="Remove attached file"
                         >
-                            Remove
+                            <Trash size={14} />
+                            <span>Remove</span>
                         </button>
                     </div>
                 )}
             </div>
 
             {fileRejections.length > 0 && (
-                <p className="text-xs text-red-600 font-medium mt-1.5">
-                    File rejected: Must be under {(maxSize / 1024 / 1024).toFixed(0)}MB.
-                </p>
+                <div className="flex items-center gap-1.5 text-xs text-rose-400 font-medium mt-2 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-md">
+                    <AlertCircle size={14} color="#f43f5e" />
+                    <span>File rejected: Must be under {(maxSize / 1024 / 1024).toFixed(0)}MB.</span>
+                </div>
             )}
         </div>
     );
