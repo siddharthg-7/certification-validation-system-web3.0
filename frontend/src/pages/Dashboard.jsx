@@ -4,16 +4,16 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import FloatingLabelInput from '../components/FloatingLabelInput';
 import {
-    AwardCertificate,
+    Award,
     ShieldCheck,
     Activity,
-    Refresh,
+    RotateCcw,
     Search,
     Copy,
-    TickCircle,
-    DocumentUpload,
-    Scan
-} from 'reicon-react';
+    Check,
+    FilePlus,
+    Layers
+} from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -64,31 +64,37 @@ const Dashboard = () => {
     };
 
     const handleUnrevoke = async (docHash) => {
-        if (!window.confirm(`Re-instate certificate ${docHash}? This will restore its authentic status.`)) return;
+        if (!window.confirm(`Are you sure you want to reinstate certificate ${docHash}?`)) {
+            return;
+        }
         setActionLoading(docHash);
         try {
             await axios.post(`${API_URL}/api/unrevoke`, { docHash });
             await fetchData();
-            alert('Certificate status re-instated successfully.');
+            alert('Certificate reinstated on the blockchain.');
         } catch (error) {
-            console.error('Unrevocation error:', error);
-            alert('Failed to re-instate certificate: ' + (error.response?.data?.details || error.message));
+            console.error('Reinstatement error:', error);
+            alert('Failed to reinstate certificate: ' + (error.response?.data?.details || error.message));
         } finally {
             setActionLoading(null);
         }
     };
 
-    const copyToClipboard = (text, id) => {
+    const copyToClipboard = (text, key) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
-        setCopiedHash(id);
-        setTimeout(() => setCopiedHash(null), 1800);
+        setCopiedHash(key);
+        setTimeout(() => setCopiedHash(null), 2000);
     };
 
     const formatDate = (timestamp) => {
         if (!timestamp) return 'N/A';
-        return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        return new Date(parseInt(timestamp) * 1000).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -106,25 +112,25 @@ const Dashboard = () => {
     });
 
     return (
-        <div className="min-h-screen bg-obsidian-950 text-slate-100 flex flex-col font-sans selection:bg-cyber-400 selection:text-obsidian-950">
+        <div className="min-h-screen bg-[#F5F3EB] text-[#102322] flex flex-col font-sans selection:bg-[#B65F3D] selection:text-white">
             <Navbar />
 
             {/* Page Header */}
-            <div className="bg-obsidian-900/80 border-b border-white/10 py-8 relative">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <div className="bg-[#EDEAE0] border-b border-[#D5D0C3] py-8">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
                     {/* Breadcrumbs */}
-                    <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-3">
-                        <Link to="/" className="hover:text-cyber-400 transition-colors">Home</Link>
+                    <div className="flex items-center gap-2 text-xs font-mono text-[#53605B] mb-3">
+                        <Link to="/" className="hover:text-[#124B40] transition-colors">Home</Link>
                         <span>/</span>
-                        <span className="text-cyber-400 font-medium">Registry Administration</span>
+                        <span className="text-[#124B40] font-semibold">Registry Administration</span>
                     </div>
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
+                            <h1 className="text-2xl sm:text-4xl font-bold text-[#102322] font-serif tracking-tight">
                                 Registry Audit Ledger &amp; Management
                             </h1>
-                            <p className="text-sm text-slate-400 mt-1.5 font-light">
+                            <p className="text-sm text-[#53605B] mt-1.5 font-normal">
                                 Real-time cryptographic ledger monitoring, transaction proof audits, and decentralized credential lifecycle governance.
                             </p>
                         </div>
@@ -133,14 +139,17 @@ const Dashboard = () => {
                             <button
                                 onClick={fetchData}
                                 disabled={isLoading}
-                                className="btn-secondary text-xs px-4 py-2.5 flex items-center gap-2 font-medium"
+                                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
                                 title="Refresh Registry Data from Blockchain"
                             >
-                                <Refresh size={14} className={isLoading ? 'animate-spin' : ''} />
+                                <RotateCcw size={13} className={isLoading ? 'animate-spin' : ''} />
                                 <span>{isLoading ? 'Syncing...' : 'Refresh'}</span>
                             </button>
-                            <Link to="/issue" className="btn-cyber text-xs px-4 py-2.5 flex items-center gap-2 font-semibold">
-                                <DocumentUpload size={14} color="#07090e" weight="Filled" />
+                            <Link
+                                to="/issue"
+                                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors shadow-sm"
+                            >
+                                <FilePlus size={14} />
                                 <span>Issue Credential</span>
                             </Link>
                         </div>
@@ -150,73 +159,73 @@ const Dashboard = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 py-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8 space-y-8">
 
                     {/* Metrics Overview Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        <div className="glass-card hover:border-cyber-400/40 transition-all">
+                        <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider">
+                                    <p className="text-[11px] font-mono font-semibold text-[#53605B] uppercase tracking-wider">
                                         Total Anchored Credentials
                                     </p>
-                                    <p className="text-3xl font-extrabold text-white mt-1.5 font-display tracking-tight">
+                                    <p className="text-3xl font-bold text-[#102322] mt-1.5 font-serif tracking-tight">
                                         {stats?.totalCertificates ?? transactions.length}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-xl bg-cyber-400/10 border border-cyber-400/30 flex items-center justify-center text-cyber-400 shadow-cyber-sm">
-                                    <AwardCertificate size={24} color="#00f2fe" />
+                                <div className="w-11 h-11 rounded bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D] flex items-center justify-center">
+                                    <Award size={22} />
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-400 mt-3.5 flex items-center gap-2 font-mono">
-                                <span className="w-2 h-2 rounded-full bg-mint-500 shadow-mint-glow animate-pulse" />
+                            <p className="text-xs text-[#53605B] mt-3.5 flex items-center gap-1.5 font-mono">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
                                 <span>Cryptographically anchored on EVM</span>
                             </p>
                         </div>
 
-                        <div className="glass-card hover:border-mint-400/40 transition-all">
+                        <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider">
+                                    <p className="text-[11px] font-mono font-semibold text-[#53605B] uppercase tracking-wider">
                                         Authorized Consortium Issuers
                                     </p>
-                                    <p className="text-3xl font-extrabold text-white mt-1.5 font-display tracking-tight">
+                                    <p className="text-3xl font-bold text-[#102322] mt-1.5 font-serif tracking-tight">
                                         {stats?.totalIssuers ?? 1}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-xl bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-400 shadow-mint-glow">
-                                    <ShieldCheck size={24} color="#00c9a7" />
+                                <div className="w-11 h-11 rounded bg-[#E6EFEB] border border-[#C7DFD9] text-[#124B40] flex items-center justify-center">
+                                    <ShieldCheck size={22} />
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-400 mt-3.5 flex items-center gap-2 font-mono">
-                                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-cyber-sm" />
+                            <p className="text-xs text-[#53605B] mt-3.5 flex items-center gap-1.5 font-mono">
+                                <span className="w-2 h-2 rounded-full bg-[#124B40] inline-block" />
                                 <span>Role-based access control enabled</span>
                             </p>
                         </div>
 
-                        <div className="glass-card hover:border-indigo-400/40 transition-all">
+                        <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider">
+                                    <p className="text-[11px] font-mono font-semibold text-[#53605B] uppercase tracking-wider">
                                         Ledger Transactions Mined
                                     </p>
-                                    <p className="text-3xl font-extrabold text-white mt-1.5 font-display tracking-tight">
+                                    <p className="text-3xl font-bold text-[#102322] mt-1.5 font-serif tracking-tight">
                                         {stats?.totalTransactions ?? transactions.length}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-indigo-glow">
-                                    <Activity size={24} color="#818cf8" />
+                                <div className="w-11 h-11 rounded bg-[#EDEAE0] border border-[#D5D0C3] text-[#53605B] flex items-center justify-center">
+                                    <Activity size={22} />
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-400 mt-3.5 flex items-center gap-2 font-mono">
-                                <span className="w-2 h-2 rounded-full bg-indigo-400" />
+                            <p className="text-xs text-[#53605B] mt-3.5 flex items-center gap-1.5 font-mono">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
                                 <span>Consensus: {stats?.network || 'EVM Hardhat Local'}</span>
                             </p>
                         </div>
                     </div>
 
                     {/* Filter & Search Bar */}
-                    <div className="glass-card p-4">
+                    <div className="bg-white border border-[#D5D0C3] rounded p-4 shadow-fine">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             {/* Search Input */}
                             <div className="w-full md:max-w-md">
@@ -232,14 +241,14 @@ const Dashboard = () => {
 
                             {/* Status Filter Pills */}
                             <div className="flex items-center gap-2 self-start md:self-center">
-                                <div className="flex bg-obsidian-900 p-1 rounded-lg border border-white/10 text-xs">
+                                <div className="flex bg-[#EDEAE0] p-1 rounded border border-[#D5D0C3] text-xs">
                                     <button
                                         type="button"
                                         onClick={() => setStatusFilter('all')}
-                                        className={`px-3 py-1 rounded-md transition-all font-medium ${
+                                        className={`px-3 py-1 rounded transition-all font-medium ${
                                             statusFilter === 'all'
-                                                ? 'bg-cyber-400 text-obsidian-950 font-bold shadow-cyber-sm'
-                                                : 'text-slate-400 hover:text-white'
+                                                ? 'bg-[#124B40] text-white font-bold shadow-sm'
+                                                : 'text-[#53605B] hover:text-[#102322]'
                                         }`}
                                     >
                                         All ({transactions.length})
@@ -247,10 +256,10 @@ const Dashboard = () => {
                                     <button
                                         type="button"
                                         onClick={() => setStatusFilter('authentic')}
-                                        className={`px-3 py-1 rounded-md transition-all font-medium ${
+                                        className={`px-3 py-1 rounded transition-all font-medium ${
                                             statusFilter === 'authentic'
-                                                ? 'bg-mint-500 text-obsidian-950 font-bold shadow-mint-glow'
-                                                : 'text-slate-400 hover:text-white'
+                                                ? 'bg-[#124B40] text-white font-bold shadow-sm'
+                                                : 'text-[#53605B] hover:text-[#102322]'
                                         }`}
                                     >
                                         Authentic
@@ -258,17 +267,17 @@ const Dashboard = () => {
                                     <button
                                         type="button"
                                         onClick={() => setStatusFilter('revoked')}
-                                        className={`px-3 py-1 rounded-md transition-all font-medium ${
+                                        className={`px-3 py-1 rounded transition-all font-medium ${
                                             statusFilter === 'revoked'
-                                                ? 'bg-amber-500 text-obsidian-950 font-bold'
-                                                : 'text-slate-400 hover:text-white'
+                                                ? 'bg-[#B65F3D] text-white font-bold shadow-sm'
+                                                : 'text-[#53605B] hover:text-[#102322]'
                                         }`}
                                     >
                                         Revoked
                                     </button>
                                 </div>
 
-                                <div className="text-xs font-mono text-slate-400 pl-2">
+                                <div className="text-xs font-mono text-[#53605B] pl-2">
                                     {filteredTx.length} record(s)
                                 </div>
                             </div>
@@ -276,37 +285,37 @@ const Dashboard = () => {
                     </div>
 
                     {/* Registry Transactions Data Table */}
-                    <div className="glass-card p-0 overflow-hidden">
-                        <div className="card-header px-6 pt-5 pb-4 mb-0">
+                    <div className="bg-white border border-[#D5D0C3] rounded shadow-fine overflow-hidden">
+                        <div className="px-6 py-4 border-b border-[#D5D0C3] flex items-center justify-between">
                             <div>
-                                <h3 className="card-title">Audited Credential Registry Entries</h3>
-                                <p className="card-subtitle">
+                                <h3 className="text-base font-bold text-[#102322] font-serif">Audited Credential Registry Entries</h3>
+                                <p className="text-xs text-[#53605B]">
                                     Permanent cryptographic anchors recorded on the smart contract registry.
                                 </p>
                             </div>
-                            <span className="badge-neutral text-xs font-mono">
+                            <span className="text-[10px] font-mono uppercase bg-[#FAF9F5] border border-[#D5D0C3] px-2.5 py-0.5 rounded text-[#53605B]">
                                 Live Synchronized
                             </span>
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="table-formal">
+                            <table className="w-full text-left text-xs border-collapse">
                                 <thead>
-                                    <tr>
-                                        <th>Document Hash / TX Hash</th>
-                                        <th>Status</th>
-                                        <th>Issuing Authority</th>
-                                        <th>Registration Date</th>
-                                        <th className="text-right">Administration Actions</th>
+                                    <tr className="bg-[#FAF9F5] border-b border-[#D5D0C3] text-[#53605B] font-mono uppercase text-[10px]">
+                                        <th className="py-3 px-6">Document Hash / TX Hash</th>
+                                        <th className="py-3 px-4">Status</th>
+                                        <th className="py-3 px-4">Issuing Authority</th>
+                                        <th className="py-3 px-4">Registration Date</th>
+                                        <th className="py-3 px-6 text-right">Lifecycle Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="divide-y divide-[#EDEAE0]">
                                     {isLoading ? (
                                         [...Array(4)].map((_, i) => (
                                             <tr key={i}>
-                                                <td colSpan={5} className="py-6 px-6 text-center text-xs text-slate-400 font-mono">
+                                                <td colSpan={5} className="py-6 px-6 text-center text-xs text-[#53605B] font-mono">
                                                     <div className="flex items-center justify-center gap-2">
-                                                        <div className="w-3.5 h-3.5 border-2 border-cyber-400 border-t-transparent rounded-full animate-spin" />
+                                                        <div className="w-3.5 h-3.5 border-2 border-[#124B40] border-t-transparent rounded-full animate-spin" />
                                                         <span>Querying blockchain node state...</span>
                                                     </div>
                                                 </td>
@@ -314,20 +323,20 @@ const Dashboard = () => {
                                         ))
                                     ) : filteredTx.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="py-14 text-center text-slate-400">
-                                                <div className="flex flex-col items-center justify-center gap-3">
-                                                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
-                                                        <Scan size={24} />
+                                            <td colSpan={5} className="py-14 text-center text-[#53605B]">
+                                                <div className="flex flex-col items-center justify-center gap-2.5">
+                                                    <div className="w-12 h-12 rounded bg-[#FAF9F5] border border-[#D5D0C3] flex items-center justify-center text-[#7B8984]">
+                                                        <Layers size={22} />
                                                     </div>
-                                                    <p className="text-base font-semibold text-white font-display">No registry entries found</p>
-                                                    <p className="text-xs text-slate-400 max-w-sm font-light">
+                                                    <p className="text-base font-semibold text-[#102322] font-serif">No registry entries found</p>
+                                                    <p className="text-xs text-[#53605B] max-w-sm">
                                                         {searchTerm ? 'No results matched your search query. Try clearing the filter.' : 'No certificates have been issued yet. Issue a credential to record the first blockchain anchor.'}
                                                     </p>
                                                     {searchTerm && (
                                                         <button
                                                             type="button"
                                                             onClick={() => setSearchTerm('')}
-                                                            className="btn-ghost text-xs px-3 py-1.5 text-cyber-400"
+                                                            className="text-xs text-[#124B40] font-semibold hover:underline mt-1"
                                                         >
                                                             Clear Search Filter
                                                         </button>
@@ -337,29 +346,29 @@ const Dashboard = () => {
                                         </tr>
                                     ) : (
                                         filteredTx.map((tx, idx) => (
-                                            <tr key={tx.id || idx}>
+                                            <tr key={tx.id || idx} className="hover:bg-[#FAF9F5] transition-colors">
                                                 {/* Hashes */}
-                                                <td>
+                                                <td className="py-3.5 px-6">
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="font-mono text-xs font-semibold text-white" title={tx.docHash}>
+                                                            <span className="font-mono text-xs font-semibold text-[#102322]" title={tx.docHash}>
                                                                 {tx.docHash ? `${tx.docHash.substring(0, 10)}...${tx.docHash.slice(-8)}` : 'N/A'}
                                                             </span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => copyToClipboard(tx.docHash, `doc-${idx}`)}
-                                                                className="text-slate-400 hover:text-cyber-400 transition-colors"
+                                                                className="text-[#7B8984] hover:text-[#102322]"
                                                                 title="Copy full document hash"
                                                             >
                                                                 {copiedHash === `doc-${idx}` ? (
-                                                                    <TickCircle size={13} color="#00c9a7" />
+                                                                    <Check size={13} className="text-emerald-600" />
                                                                 ) : (
                                                                     <Copy size={13} />
                                                                 )}
                                                             </button>
                                                         </div>
                                                         {tx.txHash && (
-                                                            <p className="font-mono text-[11px] text-slate-400" title={tx.txHash}>
+                                                            <p className="font-mono text-[11px] text-[#7B8984]" title={tx.txHash}>
                                                                 tx: {tx.txHash.substring(0, 8)}...{tx.txHash.slice(-6)}
                                                             </p>
                                                         )}
@@ -367,43 +376,43 @@ const Dashboard = () => {
                                                 </td>
 
                                                 {/* Status */}
-                                                <td>
+                                                <td className="py-3.5 px-4">
                                                     {tx.status === 'revoked' ? (
-                                                        <span className="badge-revoked text-[11px] font-mono">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D]">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-[#B65F3D]" />
                                                             REVOKED
                                                         </span>
                                                     ) : (
-                                                        <span className="badge-valid text-[11px] font-mono">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-pulse" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-[#F0FDF4] border border-[#86EFAC] text-[#15803D]">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                             AUTHENTIC
                                                         </span>
                                                     )}
                                                 </td>
 
                                                 {/* Issuer */}
-                                                <td>
-                                                    <span className="font-mono text-xs text-slate-300" title={tx.issuer}>
+                                                <td className="py-3.5 px-4">
+                                                    <span className="font-mono text-xs text-[#53605B]" title={tx.issuer}>
                                                         {tx.issuer ? `${tx.issuer.substring(0, 6)}...${tx.issuer.slice(-4)}` : 'N/A'}
                                                     </span>
                                                 </td>
 
                                                 {/* Date */}
-                                                <td>
-                                                    <span className="text-xs text-slate-300 font-mono">
+                                                <td className="py-3.5 px-4">
+                                                    <span className="text-xs text-[#53605B] font-mono">
                                                         {formatDate(tx.timestamp)}
                                                     </span>
                                                 </td>
 
                                                 {/* Actions */}
-                                                <td className="text-right">
+                                                <td className="py-3.5 px-6 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {tx.status === 'revoked' ? (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleUnrevoke(tx.docHash)}
                                                                 disabled={actionLoading === tx.docHash}
-                                                                className="btn-success"
+                                                                className="px-2.5 py-1 text-xs font-semibold rounded bg-[#F0FDF4] border border-[#86EFAC] text-[#15803D] hover:bg-[#DCFCE7] transition-colors"
                                                             >
                                                                 {actionLoading === tx.docHash ? 'Processing...' : 'Re-instate'}
                                                             </button>
@@ -412,9 +421,9 @@ const Dashboard = () => {
                                                                 type="button"
                                                                 onClick={() => handleRevoke(tx.docHash)}
                                                                 disabled={actionLoading === tx.docHash}
-                                                                className="btn-danger"
+                                                                className="px-2.5 py-1 text-xs font-semibold rounded bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors"
                                                             >
-                                                                {actionLoading === tx.docHash ? 'Processing...' : 'Revoke Credential'}
+                                                                {actionLoading === tx.docHash ? 'Processing...' : 'Revoke'}
                                                             </button>
                                                         )}
                                                     </div>

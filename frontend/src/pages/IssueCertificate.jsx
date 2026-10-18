@@ -7,19 +7,18 @@ import FileUpload from '../components/FileUpload';
 import TransactionModal from '../components/TransactionModal';
 import FloatingLabelInput from '../components/FloatingLabelInput';
 import {
-    DocumentUpload,
-    AwardCertificate,
+    FileText,
+    Award,
     ShieldCheck,
     User,
     Calendar,
     Copy,
-    TickCircle,
-    CheckCircle,
+    Check,
+    CheckCircle2,
     AlertTriangle,
-    Scan,
-    Lock,
-    ArrowRight
-} from 'reicon-react';
+    ArrowRight,
+    ExternalLink
+} from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -36,6 +35,9 @@ const IssueCertificate = () => {
         setPreviewUrl(objectUrl);
         return () => URL.revokeObjectURL(objectUrl);
     }, [file]);
+
+    const isPdf = file && (file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf'));
+    const isImage = file && (file.type?.startsWith('image/') || /\.(png|jpe?g|webp|gif|svg)$/i.test(file.name || ''));
 
     const [formData, setFormData] = useState({
         studentName: '',
@@ -60,7 +62,7 @@ const IssueCertificate = () => {
         if (!text) return;
         navigator.clipboard.writeText(text);
         setCopiedKey(key);
-        setTimeout(() => setCopiedKey(null), 1800);
+        setTimeout(() => setCopiedKey(null), 2000);
     };
 
     const handleSubmit = async (e) => {
@@ -102,10 +104,11 @@ const IssueCertificate = () => {
                 isOpen: true,
                 status: 'success',
                 txHash: response.data.data.transactionHash,
-                message: 'Certificate successfully registered and anchored on the blockchain ledger.',
+                message: 'Certificate successfully verified and permanently anchored on-chain.',
                 error: null
             });
 
+            // Reset form
             setFile(null);
             setFormData({
                 studentName: '',
@@ -133,33 +136,33 @@ const IssueCertificate = () => {
     const closeModal = () => setModalState({ ...modalState, isOpen: false });
 
     return (
-        <div className="min-h-screen bg-obsidian-950 text-slate-100 flex flex-col font-sans selection:bg-cyber-400 selection:text-obsidian-950">
+        <div className="min-h-screen bg-[#F5F3EB] text-[#102322] flex flex-col font-sans selection:bg-[#B65F3D] selection:text-white">
             <Navbar />
 
             {/* Page Header */}
-            <div className="bg-obsidian-900/80 border-b border-white/10 py-8 relative">
-                <div className="max-w-6xl mx-auto px-4 sm:px-8">
+            <div className="bg-[#EDEAE0] border-b border-[#D5D0C3] py-8">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
                     {/* Breadcrumbs */}
-                    <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-3">
-                        <Link to="/" className="hover:text-cyber-400 transition-colors">Home</Link>
+                    <div className="flex items-center gap-2 text-xs font-mono text-[#53605B] mb-3">
+                        <Link to="/" className="hover:text-[#124B40] transition-colors">Home</Link>
                         <span>/</span>
-                        <Link to="/dashboard" className="hover:text-cyber-400 transition-colors">Registry</Link>
+                        <Link to="/dashboard" className="hover:text-[#124B40] transition-colors">Registry</Link>
                         <span>/</span>
-                        <span className="text-cyber-400 font-medium">Issue Credential</span>
+                        <span className="text-[#124B40] font-semibold">Issue Credential</span>
                     </div>
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
+                            <h1 className="text-2xl sm:text-4xl font-bold text-[#102322] font-serif tracking-tight">
                                 Issue Academic / Professional Certificate
                             </h1>
-                            <p className="text-sm text-slate-400 mt-1.5 font-light">
+                            <p className="text-sm text-[#53605B] mt-1.5 font-normal">
                                 Anchor a tamper-proof credential to the Ethereum ledger with cryptographic hashing and encrypted archival.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="badge-valid text-xs font-mono">
-                                <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-pulse" />
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#E6EFEB] border border-[#C7DFD9] text-[#124B40] text-xs font-mono font-medium">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
                                 Smart Contract Registry Ready
                             </span>
                         </div>
@@ -169,49 +172,49 @@ const IssueCertificate = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 py-10">
-                <div className="max-w-6xl mx-auto px-4 sm:px-8">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
 
                     {/* Step Tracker Indicator */}
-                    <div className="grid grid-cols-3 gap-3 mb-8">
-                        <div className="glass-card p-3 border-cyber-400/30 flex items-center gap-3">
-                            <div className="w-7 h-7 rounded-md bg-cyber-400/20 text-cyber-400 flex items-center justify-center font-mono font-bold text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded p-4 flex items-center gap-3.5 shadow-fine">
+                            <div className="w-8 h-8 rounded bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D] flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
                                 01
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-bold text-white truncate font-display">Ingest File</p>
-                                <p className="text-[10px] text-slate-400 truncate font-mono">SHA-256 Digest</p>
+                                <p className="text-xs font-bold text-[#102322] truncate font-sans">Ingest File</p>
+                                <p className="text-[11px] text-[#53605B] truncate font-mono">SHA-256 Digest</p>
                             </div>
                         </div>
 
-                        <div className="glass-card p-3 border-cyber-400/30 flex items-center gap-3">
-                            <div className="w-7 h-7 rounded-md bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs">
+                        <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded p-4 flex items-center gap-3.5 shadow-fine">
+                            <div className="w-8 h-8 rounded bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D] flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
                                 02
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-bold text-white truncate font-display">Metadata</p>
-                                <p className="text-[10px] text-slate-400 truncate font-mono">AES-256 + IPFS</p>
+                                <p className="text-xs font-bold text-[#102322] truncate font-sans">Metadata</p>
+                                <p className="text-[11px] text-[#53605B] truncate font-mono">AES-256 + IPFS</p>
                             </div>
                         </div>
 
-                        <div className="glass-card p-3 border-cyber-400/30 flex items-center gap-3">
-                            <div className="w-7 h-7 rounded-md bg-mint-500/20 text-mint-400 flex items-center justify-center font-mono font-bold text-xs">
+                        <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded p-4 flex items-center gap-3.5 shadow-fine">
+                            <div className="w-8 h-8 rounded bg-[#E6EFEB] border border-[#C7DFD9] text-[#124B40] flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
                                 03
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-bold text-white truncate font-display">Calldata Anchor</p>
-                                <p className="text-[10px] text-slate-400 truncate font-mono">Immutable State</p>
+                                <p className="text-xs font-bold text-[#102322] truncate font-sans">Calldata Anchor</p>
+                                <p className="text-[11px] text-[#53605B] truncate font-mono">Immutable State</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Wallet connection warning */}
                     {!isConnected && (
-                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-8 flex items-start justify-between gap-4 text-amber-200 text-sm shadow-sm">
+                        <div className="bg-[#FAF5F0] border border-[#E8D4C5] rounded p-4 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[#8E4426] text-sm shadow-fine">
                             <div className="flex items-start gap-3">
-                                <AlertTriangle size={20} color="#f59e0b" className="flex-shrink-0 mt-0.5" />
+                                <AlertTriangle size={20} className="text-[#B65F3D] flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <p className="font-bold text-amber-300 font-display">Institutional Wallet Not Connected</p>
-                                    <p className="text-xs text-amber-200/80 mt-0.5 font-light leading-relaxed">
+                                    <p className="font-bold text-[#102322]">Institutional Wallet Not Connected</p>
+                                    <p className="text-xs text-[#53605B] mt-0.5 leading-relaxed">
                                         Please connect your authorized issuer wallet to sign and broadcast cryptographic transactions to the registry.
                                     </p>
                                 </div>
@@ -219,7 +222,7 @@ const IssueCertificate = () => {
                             <button
                                 type="button"
                                 onClick={connectWallet}
-                                className="btn-cyber text-xs py-2 px-3.5 flex-shrink-0"
+                                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors whitespace-nowrap shadow-sm"
                             >
                                 Connect Wallet
                             </button>
@@ -228,78 +231,78 @@ const IssueCertificate = () => {
 
                     {/* Success Attestation Banner (if result exists) */}
                     {result && (
-                        <div className="glass-card mb-8 border-mint-500/50 bg-mint-500/5 shadow-mint-glow">
+                        <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded p-6 mb-8 shadow-fine">
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-mint-500/20 text-mint-400 flex items-center justify-center flex-shrink-0 border border-mint-500/40">
-                                    <CheckCircle size={24} color="#00c9a7" weight="Filled" />
+                                <div className="w-10 h-10 rounded-full bg-[#DCFCE7] text-[#15803D] flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle2 size={24} />
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="badge-valid text-[11px] font-mono">ON-CHAIN FINALIZED</span>
+                                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-[#DCFCE7] text-[#15803D] px-2 py-0.5 rounded border border-[#86EFAC]">
+                                            ON-CHAIN FINALIZED
+                                        </span>
                                     </div>
-                                    <h3 className="text-lg font-bold text-white font-display">
+                                    <h3 className="text-lg font-bold text-[#102322] font-serif">
                                         Certificate Successfully Registered
                                     </h3>
-                                    <p className="text-xs text-slate-300 mt-0.5">
+                                    <p className="text-xs text-[#53605B] mt-0.5">
                                         The document digest, multi-layer hashes, and encrypted metadata have been anchored onto the immutable blockchain registry.
                                     </p>
 
-                                    <div className="mt-4 bg-obsidian-900 border border-white/10 rounded-lg p-3.5 text-xs space-y-2.5 font-mono">
+                                    <div className="mt-4 bg-white border border-[#D5D0C3] rounded p-3.5 text-xs space-y-2.5 font-mono">
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="truncate">
-                                                <span className="text-slate-400 font-sans font-semibold">Document Hash: </span>
-                                                <span className="text-cyan-300 select-all">{result.docHash}</span>
+                                                <span className="text-[#53605B] font-sans font-semibold">Document Hash: </span>
+                                                <span className="text-[#102322] font-mono">{result.docHash}</span>
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => copyText(result.docHash, 'res-dochash')}
-                                                className="text-slate-400 hover:text-white flex-shrink-0"
-                                                title="Copy Document Hash"
+                                                onClick={() => copyText(result.docHash, 'docHash')}
+                                                className="text-[#53605B] hover:text-[#102322] flex-shrink-0"
+                                                title="Copy document hash"
                                             >
-                                                {copiedKey === 'res-dochash' ? <TickCircle size={14} color="#00c9a7" /> : <Copy size={14} />}
+                                                {copiedKey === 'docHash' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                                             </button>
                                         </div>
 
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="truncate">
-                                                <span className="text-slate-400 font-sans font-semibold">Transaction: </span>
-                                                <span className="text-slate-200 select-all">{result.transactionHash}</span>
+                                                <span className="text-[#53605B] font-sans font-semibold">IPFS Reference CID: </span>
+                                                <span className="text-[#102322] font-mono">{result.ipfsCID}</span>
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => copyText(result.transactionHash, 'res-tx')}
-                                                className="text-slate-400 hover:text-white flex-shrink-0"
-                                                title="Copy Transaction Hash"
+                                                onClick={() => copyText(result.ipfsCID, 'ipfsCID')}
+                                                className="text-[#53605B] hover:text-[#102322] flex-shrink-0"
+                                                title="Copy IPFS CID"
                                             >
-                                                {copiedKey === 'res-tx' ? <TickCircle size={14} color="#00c9a7" /> : <Copy size={14} />}
+                                                {copiedKey === 'ipfsCID' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                                             </button>
                                         </div>
 
-                                        {result.ipfsCID && (
-                                            <div className="flex items-center justify-between gap-2">
-                                                <div className="truncate">
-                                                    <span className="text-slate-400 font-sans font-semibold">IPFS Encrypted CID: </span>
-                                                    <span className="text-slate-200 select-all">{result.ipfsCID}</span>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => copyText(result.ipfsCID, 'res-ipfs')}
-                                                    className="text-slate-400 hover:text-white flex-shrink-0"
-                                                    title="Copy IPFS CID"
-                                                >
-                                                    {copiedKey === 'res-ipfs' ? <TickCircle size={14} color="#00c9a7" /> : <Copy size={14} />}
-                                                </button>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="truncate">
+                                                <span className="text-[#53605B] font-sans font-semibold">Transaction: </span>
+                                                <span className="text-[#124B40] font-mono">{result.transactionHash}</span>
                                             </div>
-                                        )}
+                                            <button
+                                                type="button"
+                                                onClick={() => copyText(result.transactionHash, 'txHash')}
+                                                className="text-[#53605B] hover:text-[#102322] flex-shrink-0"
+                                                title="Copy transaction hash"
+                                            >
+                                                {copiedKey === 'txHash' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div className="mt-4 flex flex-wrap gap-3">
-                                        <Link to="/verify" className="btn-cyber text-xs px-4 py-2 font-semibold">
-                                            <span>Verify in Public Portal</span>
-                                            <ArrowRight size={14} />
-                                        </Link>
-                                        <Link to="/dashboard" className="btn-secondary text-xs px-4 py-2">
-                                            View in Registry Ledger
+                                    <div className="mt-4 flex items-center gap-3">
+                                        <Link
+                                            to="/dashboard"
+                                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#124B40] hover:underline"
+                                        >
+                                            <span>View in Registry Ledger</span>
+                                            <ArrowRight size={13} />
                                         </Link>
                                     </div>
                                 </div>
@@ -307,248 +310,308 @@ const IssueCertificate = () => {
                         </div>
                     )}
 
-                    {/* Two-Column Form & Real-Time Preview Deck */}
+                    {/* Two-Column Form & Preview Layout */}
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                        {/* Left Column: Form Inputs (7 cols) */}
+                        {/* Left Column: File Upload & Metadata Fields (7 cols) */}
                         <div className="lg:col-span-7 space-y-6">
+                            {/* Card 1: Document Upload */}
+                            <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine">
+                                <h3 className="text-base font-bold text-[#102322] font-serif mb-1 flex items-center gap-2">
+                                    <FileText size={18} className="text-[#124B40]" />
+                                    <span>Official Credential Document</span>
+                                </h3>
+                                <p className="text-xs text-[#53605B] mb-4">
+                                    Attach the official university or professional certificate file to compute binary SHA-256 and visual perceptual hashes.
+                                </p>
+                                <FileUpload onFileSelect={setFile} label="" />
 
-                            {/* SECTION 1: Document Upload */}
-                            <div className="glass-card">
-                                <div className="card-header">
-                                    <div className="flex items-center gap-2">
-                                        <DocumentUpload size={18} color="#00f2fe" />
-                                        <div>
-                                            <h2 className="card-title">1. Document Attachment</h2>
-                                            <p className="card-subtitle">
-                                                Upload digital credential document (PDF or image).
-                                            </p>
+                                {/* Attached Document Quick Preview in Ingestion Card */}
+                                {file && previewUrl && (
+                                    <div className="mt-4 pt-4 border-t border-[#D5D0C3]">
+                                        <div className="flex items-center justify-between mb-2.5">
+                                            <span className="text-xs font-bold text-[#102322] flex items-center gap-1.5 font-sans">
+                                                <CheckCircle2 size={15} className="text-emerald-600" />
+                                                <span>Attached Document Preview ({isPdf ? 'PDF' : isImage ? 'Image' : 'File'})</span>
+                                            </span>
+                                            <a
+                                                href={previewUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#124B40] hover:text-[#103D35] bg-[#E6EFEB] px-2 py-0.5 rounded transition-colors"
+                                                title="Open in new window"
+                                            >
+                                                <span>Open in new window</span>
+                                                <ExternalLink size={12} />
+                                            </a>
                                         </div>
-                                    </div>
-                                    <span className="badge-neutral text-[10px] font-mono">MANDATORY</span>
-                                </div>
 
-                                <FileUpload
-                                    onFileSelect={setFile}
-                                    label=""
-                                    accept="*"
-                                />
-
-                                {previewUrl && file && file.type.startsWith('image/') && (
-                                    <div className="mt-4 pt-4 border-t border-white/10">
-                                        <p className="label-formal">Document Snapshot</p>
-                                        <div className="max-h-48 overflow-hidden rounded-lg border border-white/10 bg-obsidian-900 flex items-center justify-center p-2">
-                                            <img src={previewUrl} alt="Attached Preview" className="max-h-44 object-contain rounded" />
-                                        </div>
+                                        {isPdf ? (
+                                            <div className="w-full h-80 border border-[#D5D0C3] rounded bg-white overflow-hidden shadow-inner">
+                                                <object
+                                                    data={`${previewUrl}#toolbar=0&navpanes=0`}
+                                                    type="application/pdf"
+                                                    className="w-full h-full"
+                                                >
+                                                    <iframe
+                                                        src={`${previewUrl}#toolbar=0&navpanes=0`}
+                                                        title="Attached PDF Document Preview"
+                                                        className="w-full h-full border-0"
+                                                    />
+                                                </object>
+                                            </div>
+                                        ) : isImage ? (
+                                            <div className="w-full max-h-72 border border-[#D5D0C3] rounded bg-neutral-50 p-2 flex items-center justify-center">
+                                                <img
+                                                    src={previewUrl}
+                                                    alt="Attached document preview"
+                                                    className="max-h-64 object-contain rounded bg-white border border-[#D5D0C3]"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="p-3 bg-[#FAF9F5] border border-[#D5D0C3] rounded text-xs text-[#53605B]">
+                                                {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
 
-                            {/* SECTION 2: Credential & Recipient Details */}
-                            <div className="glass-card">
-                                <div className="card-header">
-                                    <div className="flex items-center gap-2">
-                                        <AwardCertificate size={18} color="#818cf8" />
-                                        <div>
-                                            <h2 className="card-title">2. Credential Parameters</h2>
-                                            <p className="card-subtitle">
-                                                Candidate and institutional accreditation parameters.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span className="badge-neutral text-[10px] font-mono">METADATA</span>
-                                </div>
+                            {/* Card 2: Student & Institution Details */}
+                            <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine space-y-4">
+                                <h3 className="text-base font-bold text-[#102322] font-serif mb-1 flex items-center gap-2">
+                                    <Award size={18} className="text-[#124B40]" />
+                                    <span>Recipient &amp; Institutional Metadata</span>
+                                </h3>
+                                <p className="text-xs text-[#53605B] mb-4">
+                                    Encrypted with AES-256-CBC prior to IPFS storage to ensure student privacy.
+                                </p>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <FloatingLabelInput
-                                        label="Recipient Full Name"
+                                        id="studentName"
                                         name="studentName"
+                                        label="Recipient Full Name"
                                         value={formData.studentName}
                                         onChange={handleInputChange}
-                                        id="studentName"
                                         required
-                                        placeholder="e.g. Dr. Elena Rostova"
+                                        placeholder="e.g. Siddhartha G."
                                         icon={User}
                                     />
 
                                     <FloatingLabelInput
-                                        label="Course / Degree Program"
+                                        id="courseName"
                                         name="courseName"
+                                        label="Degree / Course Awarded"
                                         value={formData.courseName}
                                         onChange={handleInputChange}
-                                        id="courseName"
                                         required
-                                        placeholder="e.g. Blockchain Systems & Security"
-                                        icon={AwardCertificate}
+                                        placeholder="e.g. B.Tech Information Technology"
+                                        icon={Award}
                                     />
+                                </div>
 
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <FloatingLabelInput
-                                        label="Issuing Institution"
+                                        id="institution"
                                         name="institution"
+                                        label="Issuing Institution"
                                         value={formData.institution}
                                         onChange={handleInputChange}
-                                        id="institution"
                                         required
-                                        placeholder="e.g. National Institute of Technology"
+                                        placeholder="e.g. VNR VJIET"
                                         icon={ShieldCheck}
                                     />
 
                                     <FloatingLabelInput
-                                        label="Official Issue Date"
-                                        type="date"
+                                        id="issueDate"
                                         name="issueDate"
+                                        type="date"
+                                        label="Issuance Date"
                                         value={formData.issueDate}
                                         onChange={handleInputChange}
-                                        id="issueDate"
                                         required
                                         icon={Calendar}
                                     />
+                                </div>
 
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <FloatingLabelInput
-                                        label="Grade / Classification"
+                                        id="grade"
                                         name="grade"
+                                        label="Grade / Distinction (Optional)"
                                         value={formData.grade}
                                         onChange={handleInputChange}
-                                        id="grade"
-                                        placeholder="e.g. Distinction / First Class / 95%"
+                                        placeholder="e.g. First Class with Distinction"
                                     />
 
-                                    <div className="md:col-span-2">
-                                        <FloatingLabelInput
-                                            label="Institutional Remarks &amp; Audit Notes"
-                                            name="additionalInfo"
-                                            value={formData.additionalInfo}
-                                            onChange={handleInputChange}
-                                            id="additionalInfo"
-                                            textarea
-                                            rows={2}
-                                            placeholder="Enter accreditation license number, internal registry code, or faculty authorization..."
-                                        />
-                                    </div>
+                                    <FloatingLabelInput
+                                        id="additionalInfo"
+                                        name="additionalInfo"
+                                        label="Roll / Student ID (Optional)"
+                                        value={formData.additionalInfo}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. 21071A1234"
+                                    />
                                 </div>
                             </div>
 
-                            {/* SECTION 3: Cryptographic Sign-Off & Submission */}
-                            <div className="glass-card bg-gradient-to-r from-obsidian-900 to-obsidian-850 border-cyber-400/30">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div>
-                                        <div className="flex items-center gap-2 text-cyber-400 mb-1">
-                                            <Lock size={16} />
-                                            <h3 className="text-sm font-bold text-white font-display">
-                                                Cryptographic Attestation &amp; Registration
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-400 font-light leading-relaxed">
-                                            Signing broadcasts binary SHA-256 hash and encrypted payload reference to the smart contract.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting || !isConnected}
-                                        className="btn-cyber py-3 px-6 text-sm flex-shrink-0 font-semibold tracking-wide"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <div className="animate-spin h-4 w-4 border-2 border-black border-t-transparent rounded-full" />
-                                                <span>Broadcasting Transaction...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <ShieldCheck size={18} color="#07090e" weight="Filled" />
-                                                <span>Sign &amp; Anchor on Blockchain</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                            {/* Submit Button */}
+                            <div className="pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || !isConnected}
+                                    className={`w-full py-3.5 px-6 rounded font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2.5 ${
+                                        isSubmitting || !isConnected
+                                            ? 'bg-[#D5D0C3] text-[#53605B] cursor-not-allowed'
+                                            : 'bg-[#124B40] hover:bg-[#103D35] text-white cursor-pointer'
+                                    }`}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            <span>Processing Calldata Anchoring...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldCheck size={18} />
+                                            <span>Sign &amp; Anchor Certificate On-Chain</span>
+                                            <span>→</span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
 
-                        {/* Right Column: Live Holographic Certificate Preview Card (5 cols) */}
+                        {/* Right Column: Dynamic Certificate Preview (5 cols) */}
                         <div className="lg:col-span-5">
-                            <div className="sticky top-24 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">
-                                        Real-Time Credential Preview
-                                    </span>
-                                    <span className="badge-valid text-[10px] font-mono">
-                                        Live Render
-                                    </span>
-                                </div>
+                            <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine sticky top-24">
+                                <h3 className="text-base font-bold text-[#102322] font-serif mb-1 flex items-center gap-2">
+                                    <Award size={18} className="text-[#124B40]" />
+                                    <span>Real-Time Certificate Draft</span>
+                                </h3>
+                                <p className="text-xs text-[#53605B] mb-5">
+                                    Visual verification draft prior to smart contract registration.
+                                </p>
 
-                                {/* Holographic Certificate Container */}
-                                <div className="certificate-hologram p-6 text-slate-200">
-                                    <div className="guilloche-border p-6 rounded-lg text-center relative">
-                                        {/* Corner Watermarks */}
-                                        <div className="absolute top-2 left-2 text-[10px] font-mono text-cyan-400/40">VERICHAIN-ERC5192</div>
-                                        <div className="absolute top-2 right-2 text-[10px] font-mono text-cyan-400/40">SHA-256</div>
-
-                                        {/* Security Crest */}
-                                        <div className="w-12 h-12 mx-auto rounded-full bg-cyber-400/10 border border-cyber-400/30 flex items-center justify-center text-cyber-400 mb-4 shadow-cyber-sm">
-                                            <ShieldCheck size={24} color="#00f2fe" />
+                                {/* Framed Certificate Box */}
+                                <div className="border-2 border-[#102322] p-5 rounded bg-[#FAF9F5] relative shadow-fine">
+                                    {/* Inner Guilloche Border */}
+                                    <div className="border border-[#B65F3D] p-5 bg-white relative">
+                                        {/* Seal rosette top-right */}
+                                        <div className="absolute top-4 right-4 w-12 h-12 rounded-full border-2 border-dashed border-[#B65F3D] flex items-center justify-center text-[8px] font-mono text-[#B65F3D] font-bold text-center leading-none uppercase p-1">
+                                            SEAL OF VERITAS
                                         </div>
 
-                                        <p className="text-[11px] font-mono uppercase tracking-widest text-cyber-400 font-semibold mb-1">
-                                            {formData.institution || 'ACCREDITED ISSUING INSTITUTION'}
+                                        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#B65F3D] font-semibold mb-1">
+                                            OFFICIAL CREDENTIAL
                                         </p>
-                                        <h3 className="text-lg font-bold text-white font-display mb-1">
-                                            Certificate of Completion &amp; Mastery
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400 mb-4 italic">
-                                            This is to certify that the credential has been granted to
-                                        </p>
+                                        <h4 className="text-xl font-bold font-serif text-[#102322] mb-3">
+                                            Academic Credential
+                                        </h4>
 
-                                        {/* Recipient Name Display */}
-                                        <div className="py-2.5 my-2 border-y border-white/10 bg-white/5 rounded">
-                                            <p className="text-xl font-extrabold text-white font-display tracking-tight">
-                                                {formData.studentName || 'Recipient Full Name'}
-                                            </p>
+                                        <div className="space-y-2 text-xs font-mono text-[#53605B] mb-5">
+                                            <div>
+                                                <span className="text-[10px] uppercase text-[#7B8984] block font-sans">Recipient:</span>
+                                                <span className="text-[#102322] font-semibold text-sm font-sans">
+                                                    {formData.studentName || 'Recipient Name Pending'}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] uppercase text-[#7B8984] block font-sans">Degree Program:</span>
+                                                <span className="text-[#124B40] font-semibold font-sans">
+                                                    {formData.courseName || 'Degree Program Pending'}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] uppercase text-[#7B8984] block font-sans">Institution:</span>
+                                                <span className="text-[#102322] font-sans">
+                                                    {formData.institution || 'Issuing Institution Pending'}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] uppercase text-[#7B8984] block font-sans">Date of Record:</span>
+                                                <span className="text-[#102322]">
+                                                    {formData.issueDate || '—'}
+                                                </span>
+                                            </div>
+                                            {formData.grade && (
+                                                <div>
+                                                    <span className="text-[10px] uppercase text-[#7B8984] block font-sans">Grade:</span>
+                                                    <span className="text-[#102322] font-sans">{formData.grade}</span>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <p className="text-xs text-slate-300 mt-3 font-medium">
-                                            for successful qualification in
-                                        </p>
-                                        <p className="text-sm font-bold text-cyan-300 mt-0.5 font-display">
-                                            {formData.courseName || 'Program / Course Name'}
-                                        </p>
+                                        {/* Attached Document Preview */}
+                                        {previewUrl ? (
+                                            <div className="border border-[#D5D0C3] rounded bg-[#FAF9F5] p-2.5 mb-4 shadow-fine">
+                                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#D5D0C3]">
+                                                    <div className="flex items-center gap-1.5 min-w-0">
+                                                        <FileText size={14} className="text-[#124B40] flex-shrink-0" />
+                                                        <span className="text-[11px] font-semibold text-[#102322] font-sans truncate max-w-[150px] sm:max-w-[190px]">
+                                                            {file?.name || 'Attached Document'}
+                                                        </span>
+                                                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#E6EFEB] text-[#124B40] font-bold">
+                                                            {isPdf ? 'PDF' : isImage ? 'IMAGE' : 'DOC'}
+                                                        </span>
+                                                    </div>
+                                                    <a
+                                                        href={previewUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-[10px] font-mono text-[#124B40] hover:underline flex-shrink-0"
+                                                        title="Open document in new window"
+                                                    >
+                                                        <span>Open</span>
+                                                        <ExternalLink size={11} />
+                                                    </a>
+                                                </div>
 
-                                        {formData.grade && (
-                                            <p className="text-xs font-mono text-mint-400 mt-2 bg-mint-500/10 inline-block px-2.5 py-0.5 rounded border border-mint-500/30">
-                                                Honors: {formData.grade}
-                                            </p>
+                                                {isPdf ? (
+                                                    <div className="w-full h-80 rounded border border-[#D5D0C3] bg-white overflow-hidden shadow-inner">
+                                                        <object
+                                                            data={`${previewUrl}#toolbar=0&navpanes=0`}
+                                                            type="application/pdf"
+                                                            className="w-full h-full"
+                                                        >
+                                                            <iframe
+                                                                src={`${previewUrl}#toolbar=0&navpanes=0`}
+                                                                title="Credential attachment preview"
+                                                                className="w-full h-full border-0"
+                                                            />
+                                                        </object>
+                                                    </div>
+                                                ) : isImage ? (
+                                                    <img
+                                                        src={previewUrl}
+                                                        alt={file?.name || 'Credential attachment'}
+                                                        className="w-full max-h-64 object-contain rounded bg-white border border-[#D5D0C3]"
+                                                    />
+                                                ) : (
+                                                    <div className="p-3 bg-white border border-[#D5D0C3] rounded text-xs text-[#53605B]">
+                                                        {file?.name} ({(file?.size / 1024).toFixed(1)} KB)
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="border border-dashed border-[#D5D0C3] rounded p-3 text-center text-xs text-[#7B8984] mb-3">
+                                                No document attached yet
+                                            </div>
                                         )}
 
-                                        {/* Certificate Footer / Telemetry */}
-                                        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                                            <div className="text-left">
-                                                <p className="text-slate-500 uppercase">Issue Date</p>
-                                                <p className="text-slate-300">{formData.issueDate || 'YYYY-MM-DD'}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-slate-500 uppercase">Ledger State</p>
-                                                <p className="text-mint-400">Cryptographically Signed</p>
-                                            </div>
+                                        <div className="pt-2 border-t border-[#D5D0C3] flex items-center justify-between text-[10px] font-mono text-[#7B8984]">
+                                            <span>STATUS: DRAFT</span>
+                                            <span>CHAIN ID: 31337</span>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="glass-card p-4 text-xs space-y-2 text-slate-400 font-light">
-                                    <div className="flex items-center gap-2 text-slate-300 font-medium">
-                                        <Scan size={15} color="#00f2fe" />
-                                        <span>Automated Integrity Pipeline</span>
-                                    </div>
-                                    <p className="leading-relaxed">
-                                        Upon signing, this credential will undergo immediate triple-layer analysis (SHA-256 bitwise digest, Tesseract OCR text tokens, and perceptual pHash) before calldata anchoring.
-                                    </p>
                                 </div>
                             </div>
                         </div>
-
                     </form>
                 </div>
             </main>
 
-            {/* Modal for Transaction Feedback */}
+            {/* Transaction Modal */}
             <TransactionModal
                 isOpen={modalState.isOpen}
                 onClose={closeModal}

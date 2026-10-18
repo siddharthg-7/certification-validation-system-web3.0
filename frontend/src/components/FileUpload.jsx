@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
-    DocumentUpload,
+    UploadCloud,
     FileCheck,
-    Trash,
+    Trash2,
     AlertCircle
-} from 'reicon-react';
+} from 'lucide-react';
 
 const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'Upload Certificate Document' }) => {
     const onDrop = useCallback((acceptedFiles) => {
@@ -25,44 +25,52 @@ const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'U
 
     return (
         <div className="w-full">
-            {label && <label className="label-formal">{label}</label>}
+            {label && (
+                <label className="block text-xs font-semibold text-[#53605B] uppercase tracking-wider mb-2 font-mono">
+                    {label}
+                </label>
+            )}
 
             <div
                 {...getRootProps()}
-                className={`drop-zone-formal ${isDragActive ? 'drag-active' : ''}`}
+                className={`relative rounded border-2 border-dashed transition-all p-6 text-center cursor-pointer ${
+                    isDragActive
+                        ? 'border-[#124B40] bg-[#E6EFEB]'
+                        : 'border-[#D5D0C3] bg-[#FAF9F5] hover:border-[#124B40] hover:bg-white'
+                }`}
             >
                 <input {...getInputProps()} />
 
                 {!file ? (
-                    <div className="flex flex-col items-center justify-center py-5 text-center">
-                        <div className="w-14 h-14 rounded-xl bg-obsidian-850 border border-cyber-400/30 flex items-center justify-center text-cyber-400 mb-3 shadow-cyber-sm group-hover:scale-105 transition-transform">
-                            <DocumentUpload size={28} color="#00f2fe" weight="Outline" />
+                    <div className="flex flex-col items-center justify-center py-4 text-center">
+                        <div className="w-12 h-12 rounded-full bg-[#E6EFEB] border border-[#C7DFD9] flex items-center justify-center text-[#124B40] mb-3 transition-transform group-hover:scale-105">
+                            <UploadCloud size={24} strokeWidth={1.75} />
                         </div>
 
-                        <p className="text-sm font-semibold text-slate-200">
+                        <p className="text-sm font-semibold text-[#102322]">
                             {isDragActive ? (
-                                <span className="text-cyber-400 font-bold">Release credential document to attach</span>
+                                <span className="text-[#124B40] font-bold">Release credential document to attach</span>
                             ) : (
                                 <>
-                                    <span className="text-cyber-400 hover:underline cursor-pointer">Click to browse file</span>
+                                    <span className="text-[#124B40] underline underline-offset-2">Click to browse file</span>
                                     {' '}or drag &amp; drop document here
                                 </>
                             )}
                         </p>
-                        <p className="text-xs text-slate-400 mt-1.5 font-mono">
-                            PDF, PNG, JPG, or TIFF • Cryptographic SHA-256 digested on ingest (Max {(maxSize / 1024 / 1024).toFixed(0)} MB)
+                        <p className="text-xs text-[#53605B] mt-1.5 font-mono">
+                            PDF, PNG, JPG, or TIFF • Multi-Layer SHA-256 digested on ingest (Max {(maxSize / 1024 / 1024).toFixed(0)} MB)
                         </p>
                     </div>
                 ) : (
-                    <div className="flex items-center justify-between bg-obsidian-850/90 border border-cyber-400/40 rounded-lg p-4 shadow-cyber-sm">
+                    <div className="flex items-center justify-between bg-white border border-[#D5D0C3] rounded p-3.5 shadow-fine">
                         <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="w-11 h-11 rounded-lg bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-400 flex-shrink-0">
-                                <FileCheck size={22} color="#00c9a7" />
+                            <div className="w-10 h-10 rounded bg-[#E6EFEB] text-[#124B40] flex items-center justify-center flex-shrink-0">
+                                <FileCheck size={20} strokeWidth={2} />
                             </div>
                             <div className="text-left truncate">
-                                <p className="text-sm font-semibold text-white truncate max-w-sm">{file.name}</p>
-                                <p className="text-xs text-slate-400 font-mono mt-0.5">
-                                    {(file.size / 1024).toFixed(1)} KB • Document Attached &amp; Buffered
+                                <p className="text-sm font-semibold text-[#102322] truncate max-w-sm">{file.name}</p>
+                                <p className="text-xs text-[#53605B] font-mono mt-0.5">
+                                    {(file.size / 1024).toFixed(1)} KB • Document Buffered
                                 </p>
                             </div>
                         </div>
@@ -74,10 +82,10 @@ const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'U
                                 acceptedFiles.length = 0;
                                 onFileSelect(null);
                             }}
-                            className="btn-danger text-xs px-3 py-1.5 flex items-center gap-1.5"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded transition-colors"
                             title="Remove attached file"
                         >
-                            <Trash size={14} />
+                            <Trash2 size={13} />
                             <span>Remove</span>
                         </button>
                     </div>
@@ -85,8 +93,8 @@ const FileUpload = ({ onFileSelect, accept = '*', maxSize = 10485760, label = 'U
             </div>
 
             {fileRejections.length > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-rose-400 font-medium mt-2 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-md">
-                    <AlertCircle size={14} color="#f43f5e" />
+                <div className="flex items-center gap-1.5 text-xs text-rose-700 font-medium mt-2 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded">
+                    <AlertCircle size={14} className="text-rose-600" />
                     <span>File rejected: Must be under {(maxSize / 1024 / 1024).toFixed(0)}MB.</span>
                 </div>
             )}

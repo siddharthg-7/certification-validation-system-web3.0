@@ -21,20 +21,50 @@ const upload = multer({
 let web3Ready = false;
 let ipfsReady = false;
 
+async function ensureWeb3() {
+    if (!web3Ready) {
+        try {
+            await initWeb3();
+            web3Ready = true;
+        } catch (error) {
+            // Web3 not yet ready
+        }
+    }
+    return web3Ready;
+}
+
+async function ensureIPFS() {
+    if (!ipfsReady) {
+        try {
+            ipfsReady = await initIPFS();
+        } catch (error) {
+            // IPFS not yet ready
+        }
+    }
+    return ipfsReady;
+}
+
 (async () => {
     try {
         await initWeb3();
         web3Ready = true;
     } catch (error) {
-        console.error('Web3 initialization failed:', error.message);
+        console.warn('Web3 initialization deferred:', error.message);
     }
 
     try {
         ipfsReady = await initIPFS();
     } catch (error) {
-        console.error('IPFS initialization failed:', error.message);
+        console.warn('IPFS initialization deferred:', error.message);
     }
 })();
+
+// Middleware to retry initialization if pending
+router.use(async (req, res, next) => {
+    if (!web3Ready) await ensureWeb3();
+    if (!ipfsReady) await ensureIPFS();
+    next();
+});
 
 /**
  * POST /api/issue

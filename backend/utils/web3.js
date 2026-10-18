@@ -72,9 +72,37 @@ async function initWeb3() {
             console.warn('⚠️  No private key provided, contract is read-only');
         }
 
-        const code = await provider.getCode(contractAddress);
+        let code = await provider.getCode(contractAddress);
         if (code === '0x') {
-            throw new Error('No contract deployed at specified address');
+            if (process.env.HARDHAT_NETWORK === 'localhost' && signer) {
+                console.log('🔄 No contract found at address, auto-deploying CertificateRegistry to local node...');
+                const artifactPath = path.join(__dirname, '../../contracts/artifacts/contracts/CertificateRegistry.sol/CertificateRegistry.json');
+                if (fs.existsSync(artifactPath)) {
+                    const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+                    const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer);
+                    const deployed = await factory.deploy();
+                    await deployed.waitForDeployment();
+                    contractAddress = await deployed.getAddress();
+                    contract = new ethers.Contract(contractAddress, abi, signer);
+                    console.log('🚀 Successfully auto-deployed CertificateRegistry to:', contractAddress);
+
+                    // Update deployment file
+                    const deploymentPath = path.join(__dirname, '../../contracts/deployments/CertificateRegistry.json');
+                    if (fs.existsSync(deploymentPath)) {
+                        try {
+                            const dep = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+                            dep.contractAddress = contractAddress;
+                            fs.writeFileSync(deploymentPath, JSON.stringify(dep, null, 2));
+                        } catch (e) {
+                            // ignore write error
+                        }
+                    }
+                } else {
+                    throw new Error(`No contract deployed at specified address (${contractAddress}). Please deploy with 'npm run hardhat:deploy'.`);
+                }
+            } else {
+                throw new Error(`No contract deployed at specified address (${contractAddress}). Please deploy the contract first (e.g. run 'npm run hardhat:deploy' or 'npx hardhat run scripts/deploy.js --network localhost').`);
+            }
         }
 
         console.log('✅ Web3 initialized successfully');

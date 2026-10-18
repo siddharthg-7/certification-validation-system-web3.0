@@ -148,11 +148,32 @@ export const Web3Provider = ({ children }) => {
         };
     }, [account, expectedChainId]);
 
-    // Auto-connect if previously connected
+    // Auto-connect if previously connected (non-blocking)
     useEffect(() => {
         const autoConnect = async () => {
             if (isMetaMaskInstalled() && localStorage.getItem('walletConnected') === 'true') {
-                await connectWallet();
+                try {
+                    // Check if accounts are already authorized without blocking page load
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts && accounts.length > 0) {
+                        const web3Provider = new ethers.BrowserProvider(window.ethereum);
+                        const web3Signer = await web3Provider.getSigner();
+                        const network = await web3Provider.getNetwork();
+
+                        setProvider(web3Provider);
+                        setSigner(web3Signer);
+                        setAccount(accounts[0]);
+                        setChainId(Number(network.chainId));
+
+                        if (Number(network.chainId) !== expectedChainId) {
+                            setError(`Please switch to ${process.env.REACT_APP_NETWORK_NAME || 'Hardhat Local'} network`);
+                        }
+                    } else {
+                        localStorage.removeItem('walletConnected');
+                    }
+                } catch (e) {
+                    console.warn('Silent wallet connect check failed:', e);
+                }
             }
         };
         autoConnect();

@@ -23,24 +23,24 @@ function App() {
         position="top-right" 
         toastOptions={{
           style: {
-            background: 'rgba(15, 20, 32, 0.95)',
-            color: '#f8fafc',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '8px',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.65), 0 0 16px rgba(0, 242, 254, 0.15)',
+            background: '#FFFFFF',
+            color: '#102322',
+            border: '1px solid #D5D0C3',
+            borderRadius: '4px',
+            boxShadow: '0 4px 12px rgba(16, 35, 34, 0.08)',
             fontSize: '13px',
-            backdropFilter: 'blur(16px)',
+            fontFamily: 'Inter, sans-serif',
           },
           success: {
             iconTheme: {
-              primary: '#00c9a7',
-              secondary: '#07090e',
+              primary: '#124B40',
+              secondary: '#FFFFFF',
             },
           },
           error: {
             iconTheme: {
-              primary: '#ef4444',
-              secondary: '#07090e',
+              primary: '#B65F3D',
+              secondary: '#FFFFFF',
             },
           },
         }}

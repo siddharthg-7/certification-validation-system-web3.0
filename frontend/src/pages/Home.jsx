@@ -1,271 +1,434 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import HeroIllustration from '../components/HeroIllustration';
+import ArchitecturalIllustration from '../components/ArchitecturalIllustration';
 import {
+    Fingerprint,
+    Box,
+    GitBranch,
+    FileSearch,
+    Layers,
+    FileText,
     ShieldCheck,
-    AwardCertificate,
-    Verify,
-    Scan,
-    DocumentUpload,
-    Lock,
-    Activity,
-    ArrowRight,
-    CheckCircle
-} from 'reicon-react';
+    ArrowRight
+} from 'lucide-react';
 
 const Home = () => {
     return (
-        <div className="min-h-screen bg-obsidian-950 text-slate-100 flex flex-col font-sans selection:bg-cyber-400 selection:text-obsidian-950">
+        <div className="min-h-screen bg-[#F5F3EB] text-[#102322] flex flex-col font-sans selection:bg-[#B65F3D] selection:text-white">
             <Navbar />
 
-            {/* ── HERO SECTION ─────────────────────────────────────────────── */}
-            <section className="relative overflow-hidden pt-16 pb-20 sm:pt-24 sm:pb-28 border-b border-white/10">
-                {/* Ambient Radial Spotlight */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyber-400/10 rounded-full blur-[140px] pointer-events-none" />
-                <div className="absolute bottom-0 right-10 w-[500px] h-[300px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+            {/* ── SECTION C: HERO SECTION ────────────────────────────────────────── */}
+            <section className="pt-10 pb-12 sm:pt-14 sm:pb-16 border-b border-[#D5D0C3]">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                        {/* Left Column: Heading, Subtitle & Actions (7 cols) */}
+                        <div className="lg:col-span-6 xl:col-span-6">
+                            {/* Eyebrow */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="w-5 h-[1.5px] bg-[#B65F3D] inline-block" />
+                                <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-[#B65F3D]">
+                                    Enterprise Cryptographic Trust Infrastructure
+                                </span>
+                            </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
-                    <div className="max-w-3xl">
-                        {/* Status eyebrow */}
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyber-400/10 border border-cyber-400/30 text-xs font-semibold text-cyber-400 uppercase tracking-widest font-mono mb-6 shadow-cyber-sm">
-                            <span className="w-2 h-2 rounded-full bg-cyber-400 animate-pulse shadow-cyber-sm" />
-                            <span>Enterprise Cryptographic Trust Infrastructure</span>
-                        </div>
-
-                        {/* Heading */}
-                        <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-[1.1] mb-6 font-display">
-                            Decentralized Certificate <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyber-400 via-sky-300 to-indigo-400">
+                            {/* Main Editorial Serif Heading */}
+                            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-bold text-[#102322] font-serif leading-[1.08] tracking-tight mb-5">
+                                Decentralized Certificate <br />
                                 Validation &amp; Registry
-                            </span>
-                        </h1>
+                            </h1>
 
-                        {/* Description */}
-                        <p className="text-base sm:text-lg text-slate-300 leading-relaxed mb-10 max-w-2xl font-light">
-                            An authoritative cryptographic platform for issuing, permanently anchoring, and instantaneously verifying academic degrees, professional credentials, and institutional accreditations on the Ethereum blockchain.
-                        </p>
+                            {/* Supporting Paragraph */}
+                            <p className="text-[15px] sm:text-[16px] text-[#53605B] leading-[1.6] mb-8 max-w-[530px] font-normal">
+                                An authoritative cryptographic platform for issuing, permanently anchoring, and instantaneously verifying academic degrees, professional credentials, and institutional accreditations on the Ethereum blockchain.
+                            </p>
 
-                        {/* CTA Buttons */}
-                        <div className="flex flex-wrap items-center gap-4 mb-14">
-                            <Link to="/issue" className="btn-cyber px-6 py-3.5 text-sm font-semibold tracking-wide flex items-center gap-2.5">
-                                <DocumentUpload size={18} color="#07090e" weight="Filled" />
-                                <span>Issue New Credential</span>
-                            </Link>
-                            <Link to="/verify" className="btn-secondary px-6 py-3.5 text-sm font-semibold flex items-center gap-2.5">
-                                <Verify size={18} color="#00f2fe" />
-                                <span>Verify a Certificate</span>
-                            </Link>
-                            <Link to="/dashboard" className="btn-ghost px-5 py-3.5 text-sm text-slate-300 hover:text-cyber-400 flex items-center gap-1.5 font-medium">
-                                <span>Access Registry Ledger</span>
-                                <ArrowRight size={16} />
-                            </Link>
-                        </div>
-                    </div>
+                            {/* Primary Action Buttons & Link on Single Row */}
+                            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3.5 mb-2">
+                                <Link
+                                    to="/issue"
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors shadow-sm whitespace-nowrap"
+                                >
+                                    <FileText size={15} strokeWidth={2} />
+                                    <span>Issue New Credential</span>
+                                    <span className="text-white/80">→</span>
+                                </Link>
 
-                    {/* Specification Badges Bar */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-10 border-t border-white/10">
-                        <div className="glass-card p-5 hover:border-cyber-400/40 transition-all">
-                            <div className="flex items-center gap-2 text-cyber-400 mb-2">
-                                <Scan size={18} />
-                                <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">Integrity Standard</p>
+                                <Link
+                                    to="/verify"
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold bg-white hover:bg-[#FAF9F5] text-[#102322] border border-[#D5D0C3] hover:border-[#102322] rounded transition-colors shadow-fine whitespace-nowrap"
+                                >
+                                    <ShieldCheck size={15} strokeWidth={2} className="text-[#124B40]" />
+                                    <span>Verify a Certificate</span>
+                                </Link>
+
+                                <Link
+                                    to="/dashboard"
+                                    className="inline-flex items-center gap-1.5 px-2 py-2.5 text-[13px] font-semibold text-[#102322] hover:text-[#124B40] transition-colors whitespace-nowrap"
+                                >
+                                    <span>Access Registry Ledger</span>
+                                    <ArrowRight size={13} />
+                                </Link>
                             </div>
-                            <p className="text-lg font-bold text-white font-display">SHA-256 Hashing</p>
-                            <p className="text-xs text-slate-400 mt-1">Bitwise cryptographic uniqueness</p>
-                        </div>
-
-                        <div className="glass-card p-5 hover:border-cyber-400/40 transition-all">
-                            <div className="flex items-center gap-2 text-indigo-400 mb-2">
-                                <Lock size={18} />
-                                <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">Archival Security</p>
-                            </div>
-                            <p className="text-lg font-bold text-white font-display">AES-256 IPFS</p>
-                            <p className="text-xs text-slate-400 mt-1">Encrypted distributed archival</p>
                         </div>
 
-                        <div className="glass-card p-5 hover:border-cyber-400/40 transition-all">
-                            <div className="flex items-center gap-2 text-mint-400 mb-2">
-                                <ShieldCheck size={18} />
-                                <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">Consensus Engine</p>
-                            </div>
-                            <p className="text-lg font-bold text-white font-display">EVM Smart Contracts</p>
-                            <p className="text-xs text-slate-400 mt-1">Immutable on-chain state machine</p>
-                        </div>
-
-                        <div className="glass-card p-5 hover:border-cyber-400/40 transition-all">
-                            <div className="flex items-center gap-2 text-cyber-400 mb-2">
-                                <Activity size={18} />
-                                <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">Analysis Engine</p>
-                            </div>
-                            <p className="text-lg font-bold text-white font-display">Multi-Layer Audit</p>
-                            <p className="text-xs text-slate-400 mt-1">Binary, OCR &amp; pHash telemetry</p>
+                        {/* Right Column: Custom Architectural Certificate Illustration (6 cols) */}
+                        <div className="lg:col-span-6 xl:col-span-6 flex justify-center lg:justify-end">
+                            <HeroIllustration />
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── ARCHITECTURE SECTION ─────────────────────────────────────── */}
-            <section className="py-20 relative">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8">
-                    <div className="mb-14">
-                        <span className="text-xs font-mono font-bold text-cyber-400 uppercase tracking-widest bg-cyber-400/10 px-3 py-1 rounded border border-cyber-400/25">
-                            Core Architecture
-                        </span>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-3 font-display">
-                            Three Pillars of Cryptographic Verification
-                        </h2>
-                        <p className="text-sm sm:text-base text-slate-400 mt-2.5 max-w-2xl font-light leading-relaxed">
-                            The platform eliminates fraudulent degree mills and altered certifications through an automated multi-stage pipeline guaranteeing data provenance, confidentiality, and tamper-resistance.
-                        </p>
+            {/* ── SECTION D: SECURITY CAPABILITIES STRIP ──────────────────────────── */}
+            <section className="py-8 bg-[#F5F3EB]">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
+                    <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded-md shadow-fine">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#D5D0C3]">
+                            {/* Card 1: Integrity Standard */}
+                            <div className="p-6 flex items-start gap-4">
+                                <div className="text-[#102322] mt-0.5 flex-shrink-0">
+                                    <Fingerprint size={28} strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#53605B] mb-1">
+                                        Integrity Standard
+                                    </p>
+                                    <h4 className="text-[16px] font-bold text-[#102322] font-sans leading-snug">
+                                        SHA-256 Hashing
+                                    </h4>
+                                    <p className="text-[12px] text-[#53605B] mt-0.5 leading-normal">
+                                        Bitwise cryptographic uniqueness
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Card 2: Archival Security */}
+                            <div className="p-6 flex items-start gap-4">
+                                <div className="text-[#102322] mt-0.5 flex-shrink-0">
+                                    <Box size={28} strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#53605B] mb-1">
+                                        Archival Security
+                                    </p>
+                                    <h4 className="text-[16px] font-bold text-[#102322] font-sans leading-snug">
+                                        AES-256 IPFS
+                                    </h4>
+                                    <p className="text-[12px] text-[#53605B] mt-0.5 leading-normal">
+                                        Encrypted distributed archival
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Card 3: Consensus Engine */}
+                            <div className="p-6 flex items-start gap-4">
+                                <div className="text-[#102322] mt-0.5 flex-shrink-0">
+                                    <GitBranch size={28} strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#53605B] mb-1">
+                                        Consensus Engine
+                                    </p>
+                                    <h4 className="text-[16px] font-bold text-[#102322] font-sans leading-snug">
+                                        EVM Smart Contracts
+                                    </h4>
+                                    <p className="text-[12px] text-[#53605B] mt-0.5 leading-normal">
+                                        Immutable on-chain state machine
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Analysis Engine */}
+                            <div className="p-6 flex items-start gap-4">
+                                <div className="text-[#102322] mt-0.5 flex-shrink-0">
+                                    <FileSearch size={28} strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#53605B] mb-1">
+                                        Analysis Engine
+                                    </p>
+                                    <h4 className="text-[16px] font-bold text-[#102322] font-sans leading-snug">
+                                        Multi-Layer Audit
+                                    </h4>
+                                    <p className="text-[12px] text-[#53605B] mt-0.5 leading-normal">
+                                        Binary, OCR &amp; pHash telemetry
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── SECTION E: CORE ARCHITECTURE ────────────────────────────────────── */}
+            <section className="py-12 bg-[#F5F3EB]">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
+                    {/* Header with classical institutional engraving */}
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-[#D5D0C3]">
+                        <div className="max-w-2xl">
+                            <div className="flex items-center gap-2 mb-2.5">
+                                <span className="w-5 h-[1.5px] bg-[#B65F3D] inline-block" />
+                                <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-[#B65F3D]">
+                                    Core Architecture
+                                </span>
+                            </div>
+                            <h2 className="text-3xl sm:text-4xl font-bold text-[#102322] font-serif tracking-tight mb-3">
+                                Three Pillars of Cryptographic Verification
+                            </h2>
+                            <p className="text-[14.5px] text-[#53605B] leading-[1.6] max-w-xl">
+                                The platform eliminates fraudulent degree mills and altered certifications through an automated multi-stage pipeline guaranteeing data provenance, confidentiality, and tamper-resistance.
+                            </p>
+                        </div>
+
+                        {/* Classical Greco-Roman temple line engraving */}
+                        <div className="hidden md:block">
+                            <ArchitecturalIllustration />
+                        </div>
                     </div>
 
+                    {/* Three Pillars Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Pillar 1 */}
-                        <div className="glass-card group hover:border-cyber-400/50 transition-all relative overflow-hidden">
-                            <div className="w-12 h-12 rounded-xl bg-cyber-400/10 border border-cyber-400/30 flex items-center justify-center text-cyber-400 mb-5 shadow-cyber-sm group-hover:scale-110 transition-transform">
-                                <Scan size={24} color="#00f2fe" />
+                        {/* Pillar 01 */}
+                        <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded-md p-6 flex flex-col justify-between shadow-fine hover:border-[#102322] transition-colors">
+                            <div>
+                                <div className="flex items-center gap-2.5 mb-4">
+                                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D]">
+                                        01
+                                    </span>
+                                    <div className="text-[#124B40]">
+                                        <Layers size={22} strokeWidth={1.75} />
+                                    </div>
+                                </div>
+                                <h3 className="text-[19px] font-bold text-[#102322] font-serif mb-2.5 leading-snug">
+                                    Multi-Layer Integrity Validation
+                                </h3>
+                                <p className="text-[13px] text-[#53605B] leading-[1.6] mb-6">
+                                    Combines raw binary SHA-256 digest comparison with Tesseract OCR semantic text extraction and perceptual visual hash (pHash) analysis to detect both file edits and visual tampering.
+                                </p>
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-2.5 font-display">
-                                Multi-Layer Integrity Validation
-                            </h3>
-                            <p className="text-sm text-slate-300 leading-relaxed mb-5">
-                                Combines raw binary SHA-256 digest comparison with Tesseract OCR semantic text extraction and perceptual visual hash (pHash) analysis to detect both file edits and visual tampering.
-                            </p>
-                            <span className="badge-neutral text-[11px] font-mono">
-                                RFC 3161 Timestamping Standard
-                            </span>
+                            <div>
+                                <span className="inline-block text-[10px] font-mono font-semibold tracking-wider text-[#53605B] uppercase bg-white border border-[#D5D0C3] px-2.5 py-1 rounded">
+                                    RFC 3161 TIMESTAMPING STANDARD
+                                </span>
+                            </div>
                         </div>
 
-                        {/* Pillar 2 */}
-                        <div className="glass-card group hover:border-mint-400/50 transition-all relative overflow-hidden">
-                            <div className="w-12 h-12 rounded-xl bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-400 mb-5 shadow-mint-glow group-hover:scale-110 transition-transform">
-                                <Lock size={24} color="#00c9a7" />
+                        {/* Pillar 02 */}
+                        <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded-md p-6 flex flex-col justify-between shadow-fine hover:border-[#102322] transition-colors">
+                            <div>
+                                <div className="flex items-center gap-2.5 mb-4">
+                                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D]">
+                                        02
+                                    </span>
+                                    <div className="text-[#124B40]">
+                                        <FileText size={22} strokeWidth={1.75} />
+                                    </div>
+                                </div>
+                                <h3 className="text-[19px] font-bold text-[#102322] font-serif mb-2.5 leading-snug">
+                                    Encrypted Decentralized Archival
+                                </h3>
+                                <p className="text-[13px] text-[#53605B] leading-[1.6] mb-6">
+                                    Private recipient metadata and document payloads are encrypted with AES-256-CBC prior to distributed pinning across the InterPlanetary File System (IPFS), safeguarding privacy.
+                                </p>
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-2.5 font-display">
-                                Encrypted Decentralized Archival
-                            </h3>
-                            <p className="text-sm text-slate-300 leading-relaxed mb-5">
-                                Private recipient metadata and document payloads are encrypted with AES-256-CBC prior to distributed pinning across the InterPlanetary File System (IPFS), safeguarding privacy.
-                            </p>
-                            <span className="badge-neutral text-[11px] font-mono">
-                                AES-256 + IPFS CID Content Addressing
-                            </span>
+                            <div>
+                                <span className="inline-block text-[10px] font-mono font-semibold tracking-wider text-[#53605B] uppercase bg-white border border-[#D5D0C3] px-2.5 py-1 rounded">
+                                    AES-256 + IPFS CID CONTENT ADDRESSING
+                                </span>
+                            </div>
                         </div>
 
-                        {/* Pillar 3 */}
-                        <div className="glass-card group hover:border-indigo-400/50 transition-all relative overflow-hidden">
-                            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-5 shadow-indigo-glow group-hover:scale-110 transition-transform">
-                                <AwardCertificate size={24} color="#818cf8" />
+                        {/* Pillar 03 */}
+                        <div className="bg-[#FAF9F5] border border-[#D5D0C3] rounded-md p-6 flex flex-col justify-between shadow-fine hover:border-[#102322] transition-colors">
+                            <div>
+                                <div className="flex items-center gap-2.5 mb-4">
+                                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#FAF5F0] border border-[#E8D4C5] text-[#B65F3D]">
+                                        03
+                                    </span>
+                                    <div className="text-[#124B40]">
+                                        <ShieldCheck size={22} strokeWidth={1.75} />
+                                    </div>
+                                </div>
+                                <h3 className="text-[19px] font-bold text-[#102322] font-serif mb-2.5 leading-snug">
+                                    Immutable Governance &amp; Audit
+                                </h3>
+                                <p className="text-[13px] text-[#53605B] leading-[1.6] mb-6">
+                                    Authorized public key registries anchor issuances to the blockchain. Authorized institutions maintain full lifecycle governance, including verifiable on-chain revocation and reinstatements.
+                                </p>
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-2.5 font-display">
-                                Immutable Governance &amp; Audit
-                            </h3>
-                            <p className="text-sm text-slate-300 leading-relaxed mb-5">
-                                Authorized public key registries anchor issuances to the blockchain. Authorized institutions maintain full lifecycle governance, including verifiable on-chain revocation and reinstatements.
-                            </p>
-                            <span className="badge-neutral text-[11px] font-mono">
-                                Role-Based Access Control (RBAC)
-                            </span>
+                            <div>
+                                <span className="inline-block text-[10px] font-mono font-semibold tracking-wider text-[#53605B] uppercase bg-white border border-[#D5D0C3] px-2.5 py-1 rounded">
+                                    ROLE-BASED ACCESS CONTROL (RBAC)
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── WORKFLOW PROCEDURE SECTION ───────────────────────────────── */}
-            <section className="py-20 bg-obsidian-900/60 border-y border-white/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8">
-                    <div className="mb-12 text-center max-w-2xl mx-auto">
-                        <span className="text-xs font-mono font-bold text-cyber-400 uppercase tracking-widest bg-cyber-400/10 px-3 py-1 rounded border border-cyber-400/25">
-                            Procedural Protocol
-                        </span>
-                        <h2 className="text-3xl font-extrabold text-white mt-3 font-display">
+            {/* ── SECTION F: CREDENTIAL ISSUANCE & VERIFICATION WORKFLOW ──────────── */}
+            <section className="py-14 bg-[#F5F3EB] border-t border-[#D5D0C3]">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
+                    {/* Centered Heading */}
+                    <div className="text-center max-w-2xl mx-auto mb-14">
+                        <div className="inline-flex items-center justify-center gap-1.5 mb-2">
+                            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-[#B65F3D]">
+                                PROCEDURAL PROTOCOL
+                            </span>
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-[#102322] font-serif tracking-tight mb-2.5">
                             Credential Issuance &amp; Verification Workflow
                         </h2>
-                        <p className="text-sm text-slate-400 mt-2 font-light">
+                        <p className="text-[14px] text-[#53605B] font-normal">
                             Four continuous checkpoints ensuring end-to-end mathematical trust from issuance to employer validation.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="glass-card p-6 border-white/10 hover:border-cyber-400/40 transition-all relative">
-                            <span className="text-xs font-mono font-bold text-cyber-400 bg-cyber-400/10 px-2.5 py-1 rounded border border-cyber-400/30 inline-block mb-3.5">
-                                Phase 01
-                            </span>
-                            <h4 className="text-base font-bold text-white mb-2 font-display">Document Ingestion</h4>
-                            <p className="text-xs text-slate-300 leading-relaxed font-light">
-                                Authorized institutional issuer attaches the official credential and fills in verified student and course metadata.
-                            </p>
-                        </div>
+                    {/* 4 Connected Stages with Continuous Axis Line */}
+                    <div className="relative">
+                        {/* Horizontal Connector Line for Desktop */}
+                        <div className="hidden lg:block absolute top-[28px] left-[10%] right-[10%] h-[1px] bg-[#D5D0C3] z-0" />
 
-                        <div className="glass-card p-6 border-white/10 hover:border-cyber-400/40 transition-all relative">
-                            <span className="text-xs font-mono font-bold text-cyber-400 bg-cyber-400/10 px-2.5 py-1 rounded border border-cyber-400/30 inline-block mb-3.5">
-                                Phase 02
-                            </span>
-                            <h4 className="text-base font-bold text-white mb-2 font-display">Cryptographic Hashing</h4>
-                            <p className="text-xs text-slate-300 leading-relaxed font-light">
-                                Computes binary SHA-256 digest, extracts OCR semantic content, calculates perceptual visual hash, and encrypts payload.
-                            </p>
-                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+                            {/* Step 01 */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-14 h-14 rounded-full bg-[#FAF9F5] border border-[#D5D0C3] flex items-center justify-center flex-shrink-0 shadow-fine text-[#102322]">
+                                    <FileText size={20} strokeWidth={1.5} />
+                                </div>
+                                <div className="pt-1">
+                                    <span className="text-[11px] font-mono font-bold text-[#B65F3D] block mb-1">
+                                        01
+                                    </span>
+                                    <h4 className="text-[15px] font-bold text-[#102322] font-sans mb-1.5">
+                                        Document Ingestion
+                                    </h4>
+                                    <p className="text-[12.5px] text-[#53605B] leading-[1.55]">
+                                        Authorized institutional issuer attaches the official credential and fills in verified student and course metadata.
+                                    </p>
+                                </div>
+                            </div>
 
-                        <div className="glass-card p-6 border-white/10 hover:border-cyber-400/40 transition-all relative">
-                            <span className="text-xs font-mono font-bold text-cyber-400 bg-cyber-400/10 px-2.5 py-1 rounded border border-cyber-400/30 inline-block mb-3.5">
-                                Phase 03
-                            </span>
-                            <h4 className="text-base font-bold text-white mb-2 font-display">Blockchain Calldata Anchor</h4>
-                            <p className="text-xs text-slate-300 leading-relaxed font-light">
-                                Smart contract records the cryptographic hashes, IPFS reference CID, and issuer public key permanently on Ethereum.
-                            </p>
-                        </div>
+                            {/* Step 02 */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-14 h-14 rounded-full bg-[#FAF9F5] border border-[#D5D0C3] flex items-center justify-center flex-shrink-0 shadow-fine text-[#102322] font-mono text-[18px] font-bold">
+                                    #
+                                </div>
+                                <div className="pt-1">
+                                    <span className="text-[11px] font-mono font-bold text-[#B65F3D] block mb-1">
+                                        02
+                                    </span>
+                                    <h4 className="text-[15px] font-bold text-[#102322] font-sans mb-1.5">
+                                        Cryptographic Hashing
+                                    </h4>
+                                    <p className="text-[12.5px] text-[#53605B] leading-[1.55]">
+                                        Computes binary SHA-256 digest, extracts OCR semantic content, calculates perceptual visual hash, and encrypts payload.
+                                    </p>
+                                </div>
+                            </div>
 
-                        <div className="glass-card p-6 border-white/10 hover:border-cyber-400/40 transition-all relative">
-                            <span className="text-xs font-mono font-bold text-cyber-400 bg-cyber-400/10 px-2.5 py-1 rounded border border-cyber-400/30 inline-block mb-3.5">
-                                Phase 04
-                            </span>
-                            <h4 className="text-base font-bold text-white mb-2 font-display">Zero-Trust Public Audit</h4>
-                            <p className="text-xs text-slate-300 leading-relaxed font-light">
-                                Employers or verification agencies upload a certificate or query by hash to receive an instant authentic/revoked verdict.
-                            </p>
+                            {/* Step 03 */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-14 h-14 rounded-full bg-[#FAF9F5] border border-[#D5D0C3] flex items-center justify-center flex-shrink-0 shadow-fine text-[#102322]">
+                                    <Box size={20} strokeWidth={1.5} />
+                                </div>
+                                <div className="pt-1">
+                                    <span className="text-[11px] font-mono font-bold text-[#B65F3D] block mb-1">
+                                        03
+                                    </span>
+                                    <h4 className="text-[15px] font-bold text-[#102322] font-sans mb-1.5">
+                                        Blockchain Calldata Anchor
+                                    </h4>
+                                    <p className="text-[12.5px] text-[#53605B] leading-[1.55]">
+                                        Smart contract records the cryptographic hashes, IPFS reference CID, and issuer public key permanently on Ethereum.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Step 04 */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-14 h-14 rounded-full bg-[#FAF9F5] border border-[#D5D0C3] flex items-center justify-center flex-shrink-0 shadow-fine text-[#102322]">
+                                    <ShieldCheck size={20} strokeWidth={1.5} />
+                                </div>
+                                <div className="pt-1">
+                                    <span className="text-[11px] font-mono font-bold text-[#B65F3D] block mb-1">
+                                        04
+                                    </span>
+                                    <h4 className="text-[15px] font-bold text-[#102322] font-sans mb-1.5">
+                                        Zero-Trust Public Audit
+                                    </h4>
+                                    <p className="text-[12.5px] text-[#53605B] leading-[1.55]">
+                                        Employers or verification agencies upload a certificate or query by hash to receive an instant authentic/revoked verdict.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── CTA STRIP ────────────────────────────────────────────────── */}
-            <section className="py-14 bg-gradient-to-r from-obsidian-900 via-obsidian-850 to-obsidian-900 border-b border-white/10 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            {/* ── SECTION G: PRODUCTION READY PROTOCOL CTA BANNER ─────────────────── */}
+            <section className="bg-[#103D35] text-white py-12 border-t border-[#0B2520] relative overflow-hidden">
+                {/* Subtle technical line grid backdrop */}
+                <div
+                    className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{
+                        backgroundImage: `linear-gradient(#FAF9F5 1px, transparent 1px), linear-gradient(90deg, #FAF9F5 1px, transparent 1px)`,
+                        backgroundSize: '36px 36px'
+                    }}
+                />
+
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <CheckCircle size={16} color="#00c9a7" />
-                            <span className="text-xs font-mono text-mint-400 font-semibold uppercase tracking-wider">Production Ready Protocol</span>
+                            <span className="w-5 h-[1.5px] bg-[#D5B49A] inline-block" />
+                            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-[#D5B49A]">
+                                PRODUCTION READY PROTOCOL
+                            </span>
                         </div>
-                        <h3 className="text-2xl font-bold tracking-tight text-white font-display">
+                        <h3 className="text-2xl sm:text-3xl font-bold font-serif text-[#F5F3EB] tracking-tight">
                             Ready to anchor or verify credentials on-chain?
                         </h3>
-                        <p className="text-xs sm:text-sm text-slate-400 mt-1 font-light">
+                        <p className="text-[13.5px] text-[#C7DFD9] mt-1.5 max-w-xl font-normal">
                             Access the public zero-trust verification portal or connect your administrative institutional wallet.
                         </p>
                     </div>
+
                     <div className="flex items-center gap-3.5 flex-shrink-0">
-                        <Link to="/verify" className="btn-secondary text-xs px-5 py-3 font-semibold">
+                        <Link
+                            to="/verify"
+                            className="inline-flex items-center justify-center px-5 py-2.5 text-[13.5px] font-semibold text-[#F5F3EB] bg-[#0E352E] hover:bg-[#14493F] border border-[#23584E] rounded transition-colors"
+                        >
                             Verify Credential
                         </Link>
-                        <Link to="/issue" className="btn-cyber text-xs px-5 py-3 font-semibold">
-                            Issue Credential
+                        <Link
+                            to="/issue"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-[#B65F3D] hover:bg-[#9F5131] rounded transition-colors shadow-sm"
+                        >
+                            <span>Issue Credential</span>
+                            <span>→</span>
                         </Link>
                     </div>
                 </div>
             </section>
 
-            {/* ── FOOTER ───────────────────────────────────────────────────── */}
-            <footer className="mt-auto bg-obsidian-950 border-t border-white/5 py-8 text-xs text-slate-500 font-mono">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* ── SECTION H: UNDERSTATED FOOTER ───────────────────────────────────── */}
+            <footer className="bg-[#F5F3EB] border-t border-[#D5D0C3] py-4 text-[11.5px] text-[#53605B]">
+                <div className="max-w-[1360px] mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-300 font-sans">VeriChain Enterprise</span>
-                        <span>•</span>
+                        <span className="font-bold text-[#102322] font-sans">
+                            VeriChain Enterprise
+                        </span>
+                        <span>|</span>
                         <span>Decentralized Credential Registry System</span>
                     </div>
-                    <p className="text-slate-500 text-[11px]">
-                        Compliant with EVM Smart Contract Specifications &amp; W3C Verifiable Credentials Principles.
-                    </p>
+
+                    <div className="flex items-center gap-2 text-[11px] text-[#7B8984]">
+                        <span>Compliant with EVM Smart Contract Specifications</span>
+                        <span>|</span>
+                        <span>Verifiable Credentials Principles</span>
+                    </div>
                 </div>
             </footer>
         </div>

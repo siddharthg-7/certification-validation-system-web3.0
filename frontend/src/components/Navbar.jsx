@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import StatusBar from './StatusBar';
 import WalletConnect from './WalletConnect';
 import {
+    Home,
+    Layers,
+    FileText,
     ShieldCheck,
-    AwardCertificate,
-    Activity,
-    Verify,
-    DocumentUpload
-} from 'reicon-react';
+    Menu,
+    X
+} from 'lucide-react';
 
 const Navbar = () => {
     const location = useLocation();
@@ -20,153 +22,160 @@ const Navbar = () => {
     };
 
     return (
-        <header className="sticky top-0 z-40 bg-obsidian-950/85 backdrop-blur-xl border-b border-white/10 shadow-glass">
-            {/* Telemetry / Live Network Banner */}
-            <div className="bg-obsidian-900/90 text-slate-400 text-[11px] py-1.5 px-4 sm:px-8 border-b border-white/5">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyber-400 shadow-cyber-sm"></span>
-                        </span>
-                        <span className="font-semibold tracking-wider text-slate-200 uppercase font-mono text-[10.5px]">
-                            Consensus Ledger Active
-                        </span>
-                        <span className="hidden sm:inline text-slate-600">•</span>
-                        <span className="hidden sm:inline text-slate-400 font-mono text-[10.5px]">
-                            EVM Smart Contract • IPFS Cryptographic Archival
-                        </span>
-                    </div>
+        <header className="sticky top-0 z-50 bg-[#F5F3EB] border-b border-[#D5D0C3]">
+            {/* Top System Status Bar */}
+            <StatusBar />
 
-                    <div className="flex items-center gap-3 text-slate-400">
-                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">
-                            <Activity size={12} color="#00f2fe" />
-                            <span>142ms ZK-Proof Latency</span>
-                        </span>
-                        <span className="text-[10px] font-mono bg-white/5 px-2 py-0.5 rounded text-slate-300 border border-white/10">
-                            v3.0.0-PRO
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Navigation Bar */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
-                {/* Brand Identity */}
-                <Link to="/" className="flex items-center gap-3 group select-none">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-obsidian-850 to-obsidian-900 border border-cyber-400/30 flex items-center justify-center text-cyber-400 shadow-cyber-sm group-hover:border-cyber-400 group-hover:shadow-cyber transition-all duration-300 flex-shrink-0">
-                        <ShieldCheck size={22} color="#00f2fe" weight="Outline" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-lg font-extrabold tracking-tight text-white font-display">
-                                Veri<span className="text-cyber-400">Chain</span>
-                            </span>
-                            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-cyber-400/10 text-cyber-400 px-1.5 py-0.5 rounded border border-cyber-400/25">
-                                Enterprise
-                            </span>
+            {/* Main Header Container */}
+            <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
+                <div className="flex items-center justify-between h-[64px]">
+                    {/* Left: Brand Identity */}
+                    <Link to="/" className="flex items-center gap-3 group select-none">
+                        {/* Geometric Blockchain Hexagon / Cube Logo */}
+                        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" stroke="#102322" strokeWidth="1.8" fill="none" strokeLinejoin="round" />
+                                <line x1="20" y1="20" x2="20" y2="2" stroke="#102322" strokeWidth="1.8" strokeLinecap="round" />
+                                <line x1="20" y1="20" x2="36" y2="29" stroke="#102322" strokeWidth="1.8" strokeLinecap="round" />
+                                <line x1="20" y1="20" x2="4" y2="29" stroke="#102322" strokeWidth="1.8" strokeLinecap="round" />
+                                <line x1="20" y1="11" x2="28" y2="15.5" stroke="#B65F3D" strokeWidth="1.2" />
+                                <line x1="20" y1="11" x2="12" y2="15.5" stroke="#B65F3D" strokeWidth="1.2" />
+                                <line x1="20" y1="20" x2="20" y2="29" stroke="#124B40" strokeWidth="1.2" />
+                            </svg>
                         </div>
-                        <p className="text-[11px] text-slate-400 font-medium leading-none mt-0.5 tracking-normal">
-                            Decentralized Credential Infrastructure
-                        </p>
+
+                        <div>
+                            <div className="flex items-baseline gap-1.5 leading-none">
+                                <span className="text-[17px] font-bold text-[#102322] font-sans tracking-tight">
+                                    VeriChain
+                                </span>
+                                <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.16em] text-[#B65F3D]">
+                                    ENTERPRISE
+                                </span>
+                            </div>
+                            <p className="text-[10px] text-[#53605B] font-normal leading-tight mt-1">
+                                Decentralized Credential Infrastructure
+                            </p>
+                        </div>
+                    </Link>
+
+                    {/* Center: Desktop Navigation Links with active bottom line indicator flush to border */}
+                    <nav className="hidden lg:flex items-center h-full">
+                        <Link
+                            to="/"
+                            className={`inline-flex items-center gap-2 h-full px-4 text-[13px] font-medium transition-colors relative -mb-[1px] ${
+                                isActive('/')
+                                    ? 'text-[#124B40] font-semibold border-b-[2.5px] border-[#124B40]'
+                                    : 'text-[#53605B] hover:text-[#102322] border-b-[2.5px] border-transparent'
+                            }`}
+                        >
+                            <Home size={15} strokeWidth={isActive('/') ? 2.2 : 1.75} />
+                            <span>Overview</span>
+                        </Link>
+
+                        <Link
+                            to="/dashboard"
+                            className={`inline-flex items-center gap-2 h-full px-4 text-[13px] font-medium transition-colors relative -mb-[1px] ${
+                                isActive('/dashboard')
+                                    ? 'text-[#124B40] font-semibold border-b-[2.5px] border-[#124B40]'
+                                    : 'text-[#53605B] hover:text-[#102322] border-b-[2.5px] border-transparent'
+                            }`}
+                        >
+                            <Layers size={15} strokeWidth={isActive('/dashboard') ? 2.2 : 1.75} />
+                            <span>Registry Ledger</span>
+                        </Link>
+
+                        <Link
+                            to="/issue"
+                            className={`inline-flex items-center gap-2 h-full px-4 text-[13px] font-medium transition-colors relative -mb-[1px] ${
+                                isActive('/issue')
+                                    ? 'text-[#124B40] font-semibold border-b-[2.5px] border-[#124B40]'
+                                    : 'text-[#53605B] hover:text-[#102322] border-b-[2.5px] border-transparent'
+                            }`}
+                        >
+                            <FileText size={15} strokeWidth={isActive('/issue') ? 2.2 : 1.75} />
+                            <span>Issue Credential</span>
+                        </Link>
+
+                        <Link
+                            to="/verify"
+                            className={`inline-flex items-center gap-2 h-full px-4 text-[13px] font-medium transition-colors relative -mb-[1px] ${
+                                isActive('/verify')
+                                    ? 'text-[#124B40] font-semibold border-b-[2.5px] border-[#124B40]'
+                                    : 'text-[#53605B] hover:text-[#102322] border-b-[2.5px] border-transparent'
+                            }`}
+                        >
+                            <ShieldCheck size={15} strokeWidth={isActive('/verify') ? 2.2 : 1.75} />
+                            <span>Verify Credential</span>
+                        </Link>
+                    </nav>
+
+                    {/* Right: Wallet Connect & Mobile Menu Trigger */}
+                    <div className="flex items-center gap-3">
+                        <WalletConnect />
+
+                        {/* Mobile menu toggle */}
+                        <button
+                            type="button"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="lg:hidden p-1.5 rounded border border-[#D5D0C3] text-[#102322] hover:bg-[#EDEAE0]"
+                            aria-label="Toggle Navigation"
+                        >
+                            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+                        </button>
                     </div>
-                </Link>
-
-                {/* Desktop Navigation Links */}
-                <nav className="hidden md:flex items-center gap-1.5 text-sm">
-                    <Link
-                        to="/"
-                        className={isActive('/') && location.pathname === '/' ? 'nav-link-active' : 'nav-link'}
-                    >
-                        <Activity size={16} />
-                        <span>Overview</span>
-                    </Link>
-                    <Link
-                        to="/dashboard"
-                        className={isActive('/dashboard') ? 'nav-link-active' : 'nav-link'}
-                    >
-                        <AwardCertificate size={16} />
-                        <span>Registry Ledger</span>
-                    </Link>
-                    <Link
-                        to="/issue"
-                        className={isActive('/issue') ? 'nav-link-active' : 'nav-link'}
-                    >
-                        <DocumentUpload size={16} />
-                        <span>Issue Credential</span>
-                    </Link>
-                    <Link
-                        to="/verify"
-                        className={isActive('/verify') ? 'nav-link-active' : 'nav-link'}
-                    >
-                        <Verify size={16} />
-                        <span>Verify Credential</span>
-                    </Link>
-                </nav>
-
-                {/* Right Action: Wallet Connect & Mobile Menu Button */}
-                <div className="flex items-center gap-2.5">
-                    <WalletConnect />
-
-                    {/* Mobile Hamburger Button */}
-                    <button
-                        type="button"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden p-2 rounded-md bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                        aria-label="Toggle navigation menu"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {mobileMenuOpen ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            )}
-                        </svg>
-                    </button>
                 </div>
             </div>
 
-            {/* Mobile Dropdown Menu */}
+            {/* Mobile Navigation Dropdown */}
             {mobileMenuOpen && (
-                <div className="md:hidden border-t border-white/10 bg-obsidian-950/95 backdrop-blur-2xl px-4 py-3 space-y-1 shadow-modal">
+                <div className="lg:hidden border-t border-[#D5D0C3] bg-[#FAF9F5] px-4 py-3 space-y-1">
                     <Link
                         to="/"
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium ${
-                            isActive('/') && location.pathname === '/' ? 'text-cyber-400 bg-cyber-400/10' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium ${
+                            isActive('/')
+                                ? 'bg-[#E6EFEB] text-[#124B40] font-semibold'
+                                : 'text-[#53605B] hover:bg-[#EDEAE0] hover:text-[#102322]'
                         }`}
                     >
-                        <Activity size={18} />
+                        <Home size={16} />
                         <span>Overview</span>
                     </Link>
                     <Link
                         to="/dashboard"
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium ${
-                            isActive('/dashboard') ? 'text-cyber-400 bg-cyber-400/10' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium ${
+                            isActive('/dashboard')
+                                ? 'bg-[#E6EFEB] text-[#124B40] font-semibold'
+                                : 'text-[#53605B] hover:bg-[#EDEAE0] hover:text-[#102322]'
                         }`}
                     >
-                        <AwardCertificate size={18} />
+                        <Layers size={16} />
                         <span>Registry Ledger</span>
                     </Link>
                     <Link
                         to="/issue"
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium ${
-                            isActive('/issue') ? 'text-cyber-400 bg-cyber-400/10' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium ${
+                            isActive('/issue')
+                                ? 'bg-[#E6EFEB] text-[#124B40] font-semibold'
+                                : 'text-[#53605B] hover:bg-[#EDEAE0] hover:text-[#102322]'
                         }`}
                     >
-                        <DocumentUpload size={18} />
+                        <FileText size={16} />
                         <span>Issue Credential</span>
                     </Link>
                     <Link
                         to="/verify"
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium ${
-                            isActive('/verify') ? 'text-cyber-400 bg-cyber-400/10' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium ${
+                            isActive('/verify')
+                                ? 'bg-[#E6EFEB] text-[#124B40] font-semibold'
+                                : 'text-[#53605B] hover:bg-[#EDEAE0] hover:text-[#102322]'
                         }`}
                     >
-                        <Verify size={18} />
+                        <ShieldCheck size={16} />
                         <span>Verify Credential</span>
                     </Link>
                 </div>
