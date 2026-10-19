@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import FileUpload from '../components/FileUpload';
 import FloatingLabelInput from '../components/FloatingLabelInput';
@@ -16,12 +17,15 @@ import {
     Hash,
     CheckCircle,
     XCircle,
-    ExternalLink
+    ExternalLink,
+    Share2,
+    Sparkles
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const VerifyCertificate = () => {
+    const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState('file'); // 'file' | 'hash'
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -40,13 +44,15 @@ const VerifyCertificate = () => {
     const isPdf = file && (file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf'));
     const isImage = file && (file.type?.startsWith('image/') || /\.(png|jpe?g|webp|gif|svg)$/i.test(file.name || ''));
 
-    const handleVerify = async (mode = activeTab) => {
+    const handleVerify = useCallback(async (mode = activeTab, overrideHash = null) => {
+        const queryHash = (overrideHash || manualHash || '').trim();
+
         if (mode === 'file' && !file) {
-            alert('Please attach a certificate file to verify.');
+            toast.error('Please attach a certificate file to verify.');
             return;
         }
-        if (mode === 'hash' && !manualHash.trim()) {
-            alert('Please enter a valid certificate SHA-256 hash.');
+        if (mode === 'hash' && !queryHash) {
+            toast.error('Please enter a valid certificate SHA-256 hash.');
             return;
         }
 
@@ -57,7 +63,7 @@ const VerifyCertificate = () => {
             let response;
             if (mode === 'hash') {
                 response = await axios.post(`${API_URL}/api/verify-hash`, {
-                    docHash: manualHash.trim()
+                    docHash: queryHash
                 });
             } else {
                 const formData = new FormData();
@@ -68,16 +74,55 @@ const VerifyCertificate = () => {
             }
 
             setResult(response.data);
+            if (response.data.valid && !response.data.certificate?.isRevoked) {
+                toast.success('Certificate verified authentic on-chain!');
+            } else if (response.data.certificate?.isRevoked) {
+                toast.error('Notice: This certificate has been revoked.');
+            } else {
+                toast.error('Verification failed: No matching on-chain record found.');
+            }
         } catch (error) {
             console.error('Verification error:', error);
+            const errMsg = error.response?.data?.message || error.response?.data?.error || 'Verification query failed';
             setResult({
                 valid: false,
-                message: error.response?.data?.message || error.response?.data?.error || 'Verification query failed',
+                message: errMsg,
                 details: error.response?.data?.details || {},
                 error: error.message
             });
+            toast.error(errMsg);
         } finally {
             setIsVerifying(false);
+        }
+    }, [activeTab, file, manualHash]);
+
+    // Deep link query param verification (?hash=...)
+    useEffect(() => {
+        const hashParam = searchParams.get('hash');
+        if (hashParam) {
+            setActiveTab('hash');
+            setManualHash(hashParam);
+            handleVerify('hash', hashParam);
+        }
+    }, [searchParams, handleVerify]);
+
+    const handleLoadSampleHash = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/api/transactions`);
+            const txs = res.data.transactions || [];
+            if (txs.length > 0 && txs[0].docHash) {
+                setManualHash(txs[0].docHash);
+                toast.success('Loaded recent certificate hash from ledger!');
+            } else {
+                // Fallback realistic SHA-256 hash
+                const demoHash = '0x8f2a93c71e0b5d4e8c1f9b3a7d2e4c6b8a0f1e3d5c7b9a1f3e5d7c9b1a3f5d71';
+                setManualHash(demoHash);
+                toast('Sample hash loaded for demonstration.', { icon: 'ℹ️' });
+            }
+        } catch (e) {
+            const demoHash = '0x8f2a93c71e0b5d4e8c1f9b3a7d2e4c6b8a0f1e3d5c7b9a1f3e5d7c9b1a3f5d71';
+            setManualHash(demoHash);
+            toast('Sample hash loaded.', { icon: 'ℹ️' });
         }
     };
 
@@ -85,7 +130,16 @@ const VerifyCertificate = () => {
         if (!text) return;
         navigator.clipboard.writeText(text);
         setCopiedKey(key);
+        toast.success('Copied to clipboard!');
         setTimeout(() => setCopiedKey(null), 2000);
+    };
+
+    const copyShareLink = () => {
+        const currentHash = cert?.docHash || manualHash.trim();
+        if (!currentHash) return;
+        const shareUrl = `${window.location.origin}/verify?hash=${encodeURIComponent(currentHash)}`;
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Direct verification link copied to clipboard!');
     };
 
     const handlePrint = () => {
@@ -113,7 +167,7 @@ const VerifyCertificate = () => {
             <Navbar />
 
             {/* Page Header */}
-            <div className="bg-[#EDEAE0] border-b border-[#D5D0C3] py-8">
+            <div className="bg-[#EDEAE0] border-b border-[#D5D0C3] py-8 no-print">
                 <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
                     {/* Breadcrumbs */}
                     <div className="flex items-center gap-2 text-xs font-mono text-[#53605B] mb-3">
@@ -148,7 +202,7 @@ const VerifyCertificate = () => {
                 <div className="max-w-[1100px] mx-auto px-4 sm:px-8 space-y-8">
 
                     {/* Verification Input Hub Card */}
-                    <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine">
+                    <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine no-print">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-6 border-b border-[#D5D0C3]">
                             <div>
                                 <h2 className="text-lg font-bold text-[#102322] font-serif">1. Verification Method</h2>
@@ -282,15 +336,26 @@ const VerifyCertificate = () => {
                                     icon={Hash}
                                     helperText="Directly queries smart contract mappings for state anchors and revocation status."
                                 />
-                                <div className="flex items-center justify-between pt-1">
-                                    <span className="text-[11px] text-[#53605B] font-mono">
-                                        Tip: You can query any document hash recorded in the registry ledger.
-                                    </span>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[11px] text-[#53605B] font-mono">
+                                            Tip: Query any record on-chain.
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={handleLoadSampleHash}
+                                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#124B40] hover:text-[#103D35] bg-[#E6EFEB] hover:bg-[#D7E6E0] px-2 py-0.5 rounded transition-colors whitespace-nowrap"
+                                            title="Load recent or demo certificate hash"
+                                        >
+                                            <Sparkles size={11} />
+                                            <span>Try Sample Hash</span>
+                                        </button>
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={() => handleVerify('hash')}
                                         disabled={!manualHash.trim() || isVerifying}
-                                        className={`inline-flex items-center gap-2 py-2.5 px-5 text-xs font-semibold rounded transition-colors shadow-sm ${
+                                        className={`inline-flex items-center gap-2 py-2.5 px-5 text-xs font-semibold rounded transition-colors shadow-sm self-end sm:self-auto ${
                                             !manualHash.trim() || isVerifying
                                                 ? 'bg-[#D5D0C3] text-[#53605B] cursor-not-allowed'
                                                 : 'bg-[#124B40] hover:bg-[#103D35] text-white cursor-pointer'
@@ -342,15 +407,26 @@ const VerifyCertificate = () => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={handlePrint}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors self-end sm:self-center shadow-fine"
-                                        title="Print Official Verification Summary"
-                                    >
-                                        <Printer size={14} />
-                                        <span>Print Record</span>
-                                    </button>
+                                    <div className="flex items-center gap-2 self-end sm:self-center no-print">
+                                        <button
+                                            type="button"
+                                            onClick={copyShareLink}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
+                                            title="Copy direct link to this verification record"
+                                        >
+                                            <Share2 size={13} />
+                                            <span>Share Link</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handlePrint}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
+                                            title="Print Official Verification Summary"
+                                        >
+                                            <Printer size={13} />
+                                            <span>Print Record</span>
+                                        </button>
+                                    </div>
                                 </div>
                             ) : isRevoked ? (
                                 <div className="bg-[#FAF5F0] border border-[#E8D4C5] rounded p-6 flex items-start gap-4 shadow-fine">
@@ -476,8 +552,21 @@ const VerifyCertificate = () => {
 
                             {/* Section 2: Certificate Attestation Card (if found) */}
                             {cert && (
-                                <div className="bg-white border-2 border-[#102322] rounded p-6 shadow-fine">
+                                <div className="bg-white border-2 border-[#102322] rounded p-6 shadow-fine printable-certificate">
                                     <div className="border border-[#B65F3D] p-6 bg-[#FAF9F5] rounded relative">
+                                        {/* Print-only Attestation Watermark Header */}
+                                        <div className="hidden print:block pb-4 mb-4 border-b-2 border-[#102322] text-center">
+                                            <h2 className="text-xl font-bold font-serif uppercase tracking-tight text-[#102322]">
+                                                VeriChain Enterprise • Verification Attestation
+                                            </h2>
+                                            <p className="text-xs text-[#53605B] mt-0.5 font-mono">
+                                                Cryptographic Proof Anchor Verified on Ethereum Blockchain
+                                            </p>
+                                            <p className="text-[10px] text-[#7B8984] font-mono mt-0.5">
+                                                Generated on: {new Date().toUTCString()}
+                                            </p>
+                                        </div>
+
                                         {/* Seal rosette top-right */}
                                         <div className="absolute top-5 right-5 w-14 h-14 rounded-full border-2 border-dashed border-[#B65F3D] flex items-center justify-center text-[8.5px] font-mono text-[#B65F3D] font-bold text-center uppercase p-1">
                                             VERIFIED SEAL
@@ -541,7 +630,7 @@ const VerifyCertificate = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => copyText(cert.docHash, 'resHash')}
-                                                    className="text-[#53605B] hover:text-[#102322]"
+                                                    className="text-[#53605B] hover:text-[#102322] no-print"
                                                     title="Copy hash"
                                                 >
                                                     {copiedKey === 'resHash' ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
@@ -556,7 +645,7 @@ const VerifyCertificate = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => copyText(cert.issuer, 'resIssuer')}
-                                                    className="text-[#53605B] hover:text-[#102322]"
+                                                    className="text-[#53605B] hover:text-[#102322] no-print"
                                                     title="Copy issuer"
                                                 >
                                                     {copiedKey === 'resIssuer' ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
@@ -573,7 +662,7 @@ const VerifyCertificate = () => {
                                                         href={`https://gateway.pinata.cloud/ipfs/${cert.ipfsCID}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-[#124B40] hover:underline inline-flex items-center gap-1 font-sans text-[11px]"
+                                                        className="text-[#124B40] hover:underline inline-flex items-center gap-1 font-sans text-[11px] no-print"
                                                     >
                                                         <span>View IPFS</span>
                                                         <ExternalLink size={12} />
@@ -587,6 +676,11 @@ const VerifyCertificate = () => {
                                                     {isRevoked ? 'REVOKED' : 'ACTIVE & VALID'}
                                                 </span>
                                             </div>
+                                        </div>
+
+                                        {/* Print-only Legal Verification Statement Footer */}
+                                        <div className="hidden print:block pt-4 mt-5 border-t border-[#D5D0C3] text-[10px] text-[#53605B] font-mono text-center">
+                                            This official attestation certifies that the cryptographic digest above is anchored in Ethereum calldata and verified against multi-layer cryptographic hashes. Generated directly from the live public ledger.
                                         </div>
                                     </div>
                                 </div>

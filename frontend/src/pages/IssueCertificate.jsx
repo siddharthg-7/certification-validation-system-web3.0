@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { useWeb3 } from '../hooks/useWeb3';
 import Navbar from '../components/Navbar';
 import FileUpload from '../components/FileUpload';
@@ -17,7 +18,8 @@ import {
     CheckCircle2,
     AlertTriangle,
     ArrowRight,
-    ExternalLink
+    ExternalLink,
+    Sparkles
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -58,25 +60,38 @@ const IssueCertificate = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleFillSample = () => {
+        setFormData({
+            studentName: 'Alex Thorne',
+            courseName: 'Master of Science in Distributed Computing',
+            institution: 'Stanford Institute of Technology',
+            issueDate: new Date().toISOString().split('T')[0],
+            grade: 'Summa Cum Laude (GPA 4.0)',
+            additionalInfo: 'ID-2024-MSDC-8849'
+        });
+        toast.success('Sample university metadata loaded!');
+    };
+
     const copyText = (text, key) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
         setCopiedKey(key);
+        toast.success('Copied to clipboard!');
         setTimeout(() => setCopiedKey(null), 2000);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isConnected) {
-            alert('Please connect your institutional wallet to proceed.');
+            toast.error('Please connect your institutional wallet to proceed.');
             return;
         }
         if (!isCorrectNetwork) {
-            alert('Please switch to the designated blockchain network in your wallet.');
+            toast.error('Please switch to the designated blockchain network in your wallet.');
             return;
         }
         if (!file) {
-            alert('Please attach a certificate document file.');
+            toast.error('Please attach a certificate document file.');
             return;
         }
 
@@ -107,6 +122,7 @@ const IssueCertificate = () => {
                 message: 'Certificate successfully verified and permanently anchored on-chain.',
                 error: null
             });
+            toast.success('Certificate successfully registered on-chain!');
 
             // Reset form
             setFile(null);
@@ -121,13 +137,15 @@ const IssueCertificate = () => {
 
         } catch (error) {
             console.error('Issuance error:', error);
+            const errMsg = error.response?.data?.details || error.message || 'Failed to record certificate';
             setModalState({
                 isOpen: true,
                 status: 'error',
                 txHash: null,
                 message: 'Failed to record certificate on the ledger.',
-                error: error.response?.data?.details || error.message
+                error: errMsg
             });
+            toast.error(errMsg);
         } finally {
             setIsSubmitting(false);
         }
@@ -296,10 +314,18 @@ const IssueCertificate = () => {
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 flex items-center gap-3">
+                                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                                        <Link
+                                            to={`/verify?hash=${encodeURIComponent(result.docHash)}`}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors shadow-sm"
+                                        >
+                                            <ShieldCheck size={13} />
+                                            <span>Verify on Public Portal</span>
+                                            <ArrowRight size={13} />
+                                        </Link>
                                         <Link
                                             to="/dashboard"
-                                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#124B40] hover:underline"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
                                         >
                                             <span>View in Registry Ledger</span>
                                             <ArrowRight size={13} />
@@ -378,13 +404,26 @@ const IssueCertificate = () => {
 
                             {/* Card 2: Student & Institution Details */}
                             <div className="bg-white border border-[#D5D0C3] rounded p-6 shadow-fine space-y-4">
-                                <h3 className="text-base font-bold text-[#102322] font-serif mb-1 flex items-center gap-2">
-                                    <Award size={18} className="text-[#124B40]" />
-                                    <span>Recipient &amp; Institutional Metadata</span>
-                                </h3>
-                                <p className="text-xs text-[#53605B] mb-4">
-                                    Encrypted with AES-256-CBC prior to IPFS storage to ensure student privacy.
-                                </p>
+                                <div className="flex items-center justify-between pb-1 border-b border-[#EDEAE0] mb-3">
+                                    <div>
+                                        <h3 className="text-base font-bold text-[#102322] font-serif flex items-center gap-2">
+                                            <Award size={18} className="text-[#124B40]" />
+                                            <span>Recipient &amp; Institutional Metadata</span>
+                                        </h3>
+                                        <p className="text-xs text-[#53605B] mt-0.5">
+                                            Encrypted with AES-256-CBC prior to IPFS storage to ensure student privacy.
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleFillSample}
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-[#124B40] hover:text-[#103D35] bg-[#E6EFEB] hover:bg-[#D7E6E0] rounded transition-colors flex-shrink-0"
+                                        title="Fill with realistic sample credential data"
+                                    >
+                                        <Sparkles size={12} />
+                                        <span>Fill Sample</span>
+                                    </button>
+                                </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <FloatingLabelInput
@@ -394,7 +433,7 @@ const IssueCertificate = () => {
                                         value={formData.studentName}
                                         onChange={handleInputChange}
                                         required
-                                        placeholder="e.g. Siddhartha G."
+                                        placeholder="e.g. Alex Thorne"
                                         icon={User}
                                     />
 
@@ -405,7 +444,7 @@ const IssueCertificate = () => {
                                         value={formData.courseName}
                                         onChange={handleInputChange}
                                         required
-                                        placeholder="e.g. B.Tech Information Technology"
+                                        placeholder="e.g. Master of Science in Distributed Computing"
                                         icon={Award}
                                     />
                                 </div>
@@ -418,7 +457,7 @@ const IssueCertificate = () => {
                                         value={formData.institution}
                                         onChange={handleInputChange}
                                         required
-                                        placeholder="e.g. VNR VJIET"
+                                        placeholder="e.g. Stanford Institute of Technology"
                                         icon={ShieldCheck}
                                     />
 
@@ -441,7 +480,7 @@ const IssueCertificate = () => {
                                         label="Grade / Distinction (Optional)"
                                         value={formData.grade}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. First Class with Distinction"
+                                        placeholder="e.g. Summa Cum Laude (GPA 4.0)"
                                     />
 
                                     <FloatingLabelInput
@@ -450,35 +489,50 @@ const IssueCertificate = () => {
                                         label="Roll / Student ID (Optional)"
                                         value={formData.additionalInfo}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. 21071A1234"
+                                        placeholder="e.g. ID-2024-MSDC-8849"
                                     />
                                 </div>
                             </div>
 
                             {/* Submit Button */}
                             <div className="pt-2">
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting || !isConnected}
-                                    className={`w-full py-3.5 px-6 rounded font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2.5 ${
-                                        isSubmitting || !isConnected
-                                            ? 'bg-[#D5D0C3] text-[#53605B] cursor-not-allowed'
-                                            : 'bg-[#124B40] hover:bg-[#103D35] text-white cursor-pointer'
-                                    }`}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            <span>Processing Calldata Anchoring...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ShieldCheck size={18} />
-                                            <span>Sign &amp; Anchor Certificate On-Chain</span>
-                                            <span>→</span>
-                                        </>
-                                    )}
-                                </button>
+                                {!isConnected ? (
+                                    <div className="bg-[#FAF5F0] border border-[#E8D4C5] rounded p-4 text-center">
+                                        <p className="text-xs text-[#8E4426] font-medium mb-2.5">
+                                            Connect your institutional wallet to sign and anchor credentials on-chain.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={connectWallet}
+                                            className="inline-flex items-center gap-2 py-2 px-4 rounded font-semibold text-xs bg-[#124B40] hover:bg-[#103D35] text-white transition-all shadow-sm"
+                                        >
+                                            Connect Institutional Wallet
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className={`w-full py-3.5 px-6 rounded font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2.5 ${
+                                            isSubmitting
+                                                ? 'bg-[#D5D0C3] text-[#53605B] cursor-not-allowed'
+                                                : 'bg-[#124B40] hover:bg-[#103D35] text-white cursor-pointer'
+                                        }`}
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Processing Calldata Anchoring...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ShieldCheck size={18} />
+                                                <span>Sign &amp; Anchor Certificate On-Chain</span>
+                                                <span>→</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                         </div>
 

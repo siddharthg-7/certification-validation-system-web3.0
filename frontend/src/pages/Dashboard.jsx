@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import FloatingLabelInput from '../components/FloatingLabelInput';
+import ConfirmationModal from '../components/ConfirmationModal';
 import {
     Award,
     ShieldCheck,
@@ -12,7 +14,8 @@ import {
     Copy,
     Check,
     FilePlus,
-    Layers
+    Layers,
+    Download
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -25,6 +28,15 @@ const Dashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'authentic' | 'revoked'
     const [copiedHash, setCopiedHash] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        type: null,
+        docHash: null,
+        title: '',
+        message: '',
+        confirmVariant: 'danger',
+        confirmText: ''
+    });
 
     useEffect(() => {
         fetchData();
@@ -41,49 +53,89 @@ const Dashboard = () => {
             setStats(statsRes.data.stats || null);
         } catch (error) {
             console.error('Error fetching registry data:', error);
+            toast.error('Could not sync with blockchain ledger');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleRevoke = async (docHash) => {
-        if (!window.confirm(`Are you sure you want to revoke certificate ${docHash}? This action broadcasts an on-chain status update to the EVM registry.`)) {
-            return;
-        }
+    const promptRevoke = (docHash) => {
+        setConfirmModal({
+            isOpen: true,
+            type: 'revoke',
+            docHash,
+            title: 'Revoke Certificate On-Chain',
+            message: 'Are you sure you want to revoke this certificate? This action broadcasts an on-chain status update to the EVM registry, immediately invalidating public verification.',
+            confirmVariant: 'danger',
+            confirmText: 'Revoke On-Chain'
+        });
+    };
+
+    const promptUnrevoke = (docHash) => {
+        setConfirmModal({
+            isOpen: true,
+            type: 'unrevoke',
+            docHash,
+            title: 'Reinstate Certificate On-Chain',
+            message: 'Are you sure you want to reinstate this certificate? This will restore its status to Authentic on the blockchain registry.',
+            confirmVariant: 'success',
+            confirmText: 'Reinstate Credential'
+        });
+    };
+
+    const handleExecuteConfirm = async () => {
+        const { type, docHash } = confirmModal;
+        if (!docHash) return;
         setActionLoading(docHash);
         try {
-            await axios.post(`${API_URL}/api/revoke`, { docHash });
-            await fetchData();
-            alert('Certificate successfully marked as REVOKED on the blockchain.');
+            if (type === 'revoke') {
+                await axios.post(`${API_URL}/api/revoke`, { docHash });
+                await fetchData();
+                toast.success('Certificate marked as REVOKED on blockchain.');
+            } else {
+                await axios.post(`${API_URL}/api/unrevoke`, { docHash });
+                await fetchData();
+                toast.success('Certificate reinstated as AUTHENTIC on blockchain.');
+            }
+            setConfirmModal({ ...confirmModal, isOpen: false });
         } catch (error) {
-            console.error('Revocation error:', error);
-            alert('Failed to revoke certificate: ' + (error.response?.data?.details || error.message));
+            console.error('Action error:', error);
+            toast.error('Failed: ' + (error.response?.data?.details || error.message));
         } finally {
             setActionLoading(null);
         }
     };
 
-    const handleUnrevoke = async (docHash) => {
-        if (!window.confirm(`Are you sure you want to reinstate certificate ${docHash}?`)) {
+    const exportToCSV = () => {
+        if (!transactions || transactions.length === 0) {
+            toast.error('No registry transactions available to export.');
             return;
         }
-        setActionLoading(docHash);
-        try {
-            await axios.post(`${API_URL}/api/unrevoke`, { docHash });
-            await fetchData();
-            alert('Certificate reinstated on the blockchain.');
-        } catch (error) {
-            console.error('Reinstatement error:', error);
-            alert('Failed to reinstate certificate: ' + (error.response?.data?.details || error.message));
-        } finally {
-            setActionLoading(null);
-        }
+        const headers = ['Document Hash', 'Transaction Hash', 'Status', 'Issuer Address', 'Timestamp UTC', 'IPFS CID'];
+        const rows = transactions.map(tx => [
+            `"${tx.docHash || ''}"`,
+            `"${tx.txHash || ''}"`,
+            `"${tx.status || 'authentic'}"`,
+            `"${tx.issuer || ''}"`,
+            `"${tx.timestamp ? new Date(parseInt(tx.timestamp) * 1000).toISOString() : ''}"`,
+            `"${tx.ipfsCID || ''}"`
+        ]);
+        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `verichain_registry_ledger_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Audited registry ledger exported as CSV!');
     };
 
     const copyToClipboard = (text, key) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
         setCopiedHash(key);
+        toast.success('Copied to clipboard!');
         setTimeout(() => setCopiedHash(null), 2000);
     };
 
@@ -135,11 +187,19 @@ const Dashboard = () => {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                            <button
+                                onClick={exportToCSV}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
+                                title="Export Audited Ledger Records to CSV"
+                            >
+                                <Download size={13} />
+                                <span>Export CSV</span>
+                            </button>
                             <button
                                 onClick={fetchData}
                                 disabled={isLoading}
-                                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] rounded transition-colors shadow-fine"
                                 title="Refresh Registry Data from Blockchain"
                             >
                                 <RotateCcw size={13} className={isLoading ? 'animate-spin' : ''} />
@@ -147,7 +207,7 @@ const Dashboard = () => {
                             </button>
                             <Link
                                 to="/issue"
-                                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors shadow-sm"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors shadow-sm"
                             >
                                 <FilePlus size={14} />
                                 <span>Issue Credential</span>
@@ -407,21 +467,30 @@ const Dashboard = () => {
                                                 {/* Actions */}
                                                 <td className="py-3.5 px-6 text-right">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        <Link
+                                                            to={`/verify?hash=${encodeURIComponent(tx.docHash)}`}
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-white border border-[#D5D0C3] hover:border-[#102322] text-[#102322] hover:text-[#124B40] transition-colors shadow-fine"
+                                                            title="Audit certificate on verification portal"
+                                                        >
+                                                            <ShieldCheck size={12} className="text-[#124B40]" />
+                                                            <span>Audit</span>
+                                                        </Link>
+
                                                         {tx.status === 'revoked' ? (
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleUnrevoke(tx.docHash)}
+                                                                onClick={() => promptUnrevoke(tx.docHash)}
                                                                 disabled={actionLoading === tx.docHash}
-                                                                className="px-2.5 py-1 text-xs font-semibold rounded bg-[#F0FDF4] border border-[#86EFAC] text-[#15803D] hover:bg-[#DCFCE7] transition-colors"
+                                                                className="px-2.5 py-1 text-xs font-semibold rounded bg-[#F0FDF4] border border-[#86EFAC] text-[#15803D] hover:bg-[#DCFCE7] transition-colors cursor-pointer"
                                                             >
                                                                 {actionLoading === tx.docHash ? 'Processing...' : 'Re-instate'}
                                                             </button>
                                                         ) : (
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleRevoke(tx.docHash)}
+                                                                onClick={() => promptRevoke(tx.docHash)}
                                                                 disabled={actionLoading === tx.docHash}
-                                                                className="px-2.5 py-1 text-xs font-semibold rounded bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors"
+                                                                className="px-2.5 py-1 text-xs font-semibold rounded bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
                                                             >
                                                                 {actionLoading === tx.docHash ? 'Processing...' : 'Revoke'}
                                                             </button>
@@ -438,6 +507,19 @@ const Dashboard = () => {
 
                 </div>
             </main>
+
+            {/* Custom Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={handleExecuteConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+                confirmVariant={confirmModal.confirmVariant}
+                isLoading={actionLoading === confirmModal.docHash}
+                details={{ docHash: confirmModal.docHash }}
+            />
         </div>
     );
 };

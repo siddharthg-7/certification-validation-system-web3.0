@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useWeb3 } from '../hooks/useWeb3';
 import {
     AlertTriangle,
@@ -32,8 +33,14 @@ const WalletConnect = () => {
         if (account) {
             navigator.clipboard.writeText(account);
             setCopied(true);
+            toast.success('Wallet address copied to clipboard!');
             setTimeout(() => setCopied(false), 2000);
         }
+    };
+
+    const handleDisconnect = () => {
+        disconnectWallet();
+        toast.success('Wallet disconnected');
     };
 
     if (!isConnected) {
@@ -47,7 +54,7 @@ const WalletConnect = () => {
                 <button
                     onClick={connectWallet}
                     disabled={isConnecting}
-                    className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold bg-forest-800 hover:bg-forest-900 text-white rounded transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold bg-[#124B40] hover:bg-[#103D35] text-white rounded transition-colors shadow-sm cursor-pointer"
                     title="Connect MetaMask Wallet"
                 >
                     <Wallet size={14} />
@@ -72,11 +79,11 @@ const WalletConnect = () => {
                 </div>
             )}
 
-            <div className="inline-flex items-center bg-white border border-rule rounded text-xs px-2.5 py-1 text-ink-900 shadow-fine">
+            <div className="inline-flex items-center bg-white border border-[#D5D0C3] rounded text-xs px-2.5 py-1 text-[#102322] shadow-fine">
                 {/* Network label with indicator */}
-                <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold pr-2.5 border-r border-rule">
+                <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold pr-2.5 border-r border-[#D5D0C3]">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                    <span className="text-ink-700">
+                    <span className="text-[#324543]">
                         EVM {chainId ? `#${chainId === 31337 ? '1' : chainId}` : '#1'}
                     </span>
                 </div>
@@ -84,19 +91,19 @@ const WalletConnect = () => {
                 {/* Account identifier with copy button */}
                 <button
                     onClick={copyToClipboard}
-                    className="flex items-center gap-1.5 pl-2.5 font-mono text-[11px] font-semibold text-ink-900 hover:text-forest-800 transition-colors"
+                    className="flex items-center gap-1.5 pl-2.5 font-mono text-[11px] font-semibold text-[#102322] hover:text-[#124B40] transition-colors"
                     title="Click to copy public address"
                 >
                     <span>{truncateAddress(account)}</span>
-                    <span className="text-ink-500">
+                    <span className="text-[#53605B]">
                         {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
                     </span>
                 </button>
 
                 {/* Disconnect button */}
                 <button
-                    onClick={disconnectWallet}
-                    className="text-ink-400 hover:text-rose-600 pl-2 ml-1 border-l border-rule transition-colors"
+                    onClick={handleDisconnect}
+                    className="text-[#7B8984] hover:text-rose-600 pl-2 ml-1 border-l border-[#D5D0C3] transition-colors cursor-pointer"
                     title="Disconnect Wallet"
                 >
                     <LogOut size={12} />
